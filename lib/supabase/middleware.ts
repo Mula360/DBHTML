@@ -3,7 +3,13 @@ import { NextResponse, type NextRequest } from "next/server";
 
 type CookieToSet = { name: string; value: string; options: CookieOptions };
 
-const PUBLIC_PATHS = ["/login", "/auth", "/api/cron", "/api/recall-webhook"];
+const PUBLIC_PATHS = [
+  "/login",
+  "/auth",
+  "/api/cron",
+  "/api/recall-webhook",
+  "/api/health",
+];
 
 /** Refreshes the Supabase session cookie and gates private routes. */
 export async function updateSession(request: NextRequest) {
