@@ -1,0 +1,62 @@
+.login-shell{
+  min-height:100vh;background:#123A5E;
+  font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#1F2224;
+  display:grid;grid-template-columns:minmax(0,1.05fr) minmax(480px,0.95fr);
+}
+.login-collage{position:relative;background:#0F2E48;overflow:hidden;min-height:100vh}
+.login-tiles{position:absolute;inset:0;display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr));
+  gap:3px;padding:3px}
+.login-tiles>span{border-radius:6px;opacity:.9}
+.login-tiles>span:first-child{grid-column:span 2;grid-row:span 2}
+.login-collage-fade{position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(15,46,72,.92) 0%,rgba(15,46,72,.42) 44%,rgba(15,46,72,.12) 72%,rgba(15,46,72,0) 100%)}
+.login-collage-text{position:absolute;top:0;left:0;right:0;padding:34px 38px;pointer-events:none}
+.login-collage-text h2{font:400 30px/1.2 Georgia,serif;color:#fff;max-width:440px;letter-spacing:-.01em;margin:0}
+.login-collage-text p{font-size:13px;color:#C7DBEA;margin:11px 0 0;max-width:400px;line-height:1.55}
+.login-right{background:#F4F7F9;display:flex;flex-direction:column;min-width:0}
+.login-form-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:56px 60px}
+.login-form{width:100%;max-width:392px}
+.login-form h1{font:400 26px/1.2 Georgia,serif;margin:0}
+.login-sub{font-size:13px;color:#6B7A85;margin:8px 0 0;line-height:1.5}
+.login-label{font-size:12px;font-weight:700;color:#4A5A66;margin-bottom:7px}
+.login-field{display:flex;align-items:center;gap:10px;padding:0 13px;background:#fff;
+  border:1px solid #DCE5EB;border-radius:8px;min-height:46px}
+.login-field span{color:#9AA7B0;font-size:14px}
+.login-field input{flex:1;border:none;outline:none;background:transparent;
+  font-size:14px;color:#1F2224;padding:12px 0;font-family:inherit}
+.login-primary{width:100%;margin-top:22px;padding:15px;border:none;border-radius:8px;
+  background:#3078C0;color:#fff;font-size:14px;font-weight:700;text-align:center;cursor:pointer;
+  min-height:48px;font-family:inherit}
+.login-primary:disabled{opacity:.6;cursor:default}
+.login-or{display:flex;align-items:center;gap:12px;margin:20px 0}
+.login-or>div:first-child,.login-or>div:last-child{flex:1;height:1px;background:#E2E9EE}
+.login-or>span{font-size:11px;color:#9AA7B0;letter-spacing:.06em}
+.login-secondary{width:100%;padding:14px;border-radius:8px;border:1px solid #DCE5EB;background:#fff;
+  font-size:13.5px;font-weight:600;text-align:center;cursor:pointer;min-height:46px;
+  font-family:inherit;color:#1F2224}
+.login-note{font-size:11.5px;color:#8A98A2;margin-top:20px;line-height:1.55}
+.login-alert{margin-top:14px;padding:11px 13px;border-radius:8px;font-size:13px;line-height:1.5}
+.login-alert.err{background:#FBECEC;border:1px solid #F0CDCD;color:#8A2A2A}
+.login-alert.ok{background:#E7F5EC;border:1px solid #BFE3CC;color:#1E6B3A}
+.login-rail{background:#fff;border-top:1px solid #E2E9EE;padding:30px 60px 38px}
+.login-rail-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}
+.login-rail-eyebrow{display:flex;align-items:center;gap:8px;margin-bottom:11px}
+.login-rail-eyebrow span{width:7px;height:7px;border-radius:2px}
+.login-rail-eyebrow div{font:600 10px/1 'Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:.09em;color:#6B7A85}
+.login-rail-body{font:400 15px/1.5 Georgia,serif;margin-bottom:9px}
+.login-rail-src{font-size:11.5px;color:#8A98A2}
+.login-rail-foot{display:flex;align-items:center;gap:10px;margin-top:20px;padding-top:16px;
+  border-top:1px solid #F2F6F8;flex-wrap:wrap}
+.login-shuffle{display:flex;align-items:center;gap:8px;padding:9px 13px;border:1px solid #DCE5EB;
+  border-radius:7px;background:#fff;font-family:inherit;font-size:12px;font-weight:600;color:#1F2224;
+  cursor:pointer;min-height:38px}
+.login-set{font-size:11.5px;color:#9AA7B0}
+.login-logo{height:44px;width:auto;margin-bottom:26px}
+@media (max-width:900px){
+  .login-shell{grid-template-columns:1fr}
+  .login-collage{min-height:280px}
+  .login-form-wrap{padding:32px 22px}
+  .login-rail{padding:26px 22px 34px}
+  .login-rail-grid{grid-template-columns:1fr}
+}
