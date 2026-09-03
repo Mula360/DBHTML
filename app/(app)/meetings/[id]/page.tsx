@@ -12,6 +12,7 @@ import type {
   MemberRow,
 } from "@/lib/database.types";
 import { StatusFlow } from "./StatusFlow";
+import { BotControls } from "./BotControls";
 import { AttendanceGrid } from "./AttendanceGrid";
 import { MomEditor } from "./MomEditor";
 import { PublishControls } from "./PublishControls";
@@ -126,6 +127,15 @@ export default async function MeetingDetail({
           : quorum.met
             ? `Quorum met (${quorum.counted}/${quorum.present} present, need ${quorum.required}).`
             : `NO QUORUM — decisions at this meeting are not binding under Rule 26 (${quorum.counted} counted, need ${quorum.required}).`}
+      </div>
+
+      <div className="card">
+        <h3 style={{ marginBottom: 8 }}>Meeting bot &amp; AI minutes</h3>
+        <BotControls
+          meetingId={m.id}
+          botId={m.recall_bot_id}
+          hasTranscript={Boolean(m.transcript_text)}
+        />
       </div>
 
       <div className="card">

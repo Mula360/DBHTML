@@ -8,6 +8,7 @@ import { computeQuorum } from "@/lib/quorum";
 import { MEETING_STATUS_NEXT, normaliseMom } from "@/lib/meetings";
 import { notifyMember } from "@/lib/mailer";
 import { getCurrentTerm } from "@/lib/portfolios";
+import { scheduleBot } from "@/lib/recall";
 import type {
   MeetingRow,
   MomContent,
@@ -61,6 +62,32 @@ export async function createMeeting(_p: Result, fd: FormData): Promise<Result> {
     .single();
   if (error) return { error: error.message };
   redirect(`/meetings/${data.id}`);
+}
+
+/** Phase 2 — activate the Recall.ai meeting bot for this meeting. */
+export async function activateBot(meetingId: string): Promise<Result> {
+  await getSessionMember();
+  const db = createClient();
+  const { data: meeting } = await db
+    .from("meetings")
+    .select("meet_link, recall_bot_id")
+    .eq("id", meetingId)
+    .maybeSingle();
+  if (!meeting?.meet_link)
+    return { error: "Add a Google Meet link to the meeting first." };
+  if (meeting.recall_bot_id) return { error: "A bot is already scheduled." };
+
+  const res = await scheduleBot(meeting.meet_link);
+  if (res.skipped)
+    return { error: "Meeting bot is not configured (RECALL_API_KEY unset)." };
+  if (res.error) return { error: res.error };
+
+  await db
+    .from("meetings")
+    .update({ recall_bot_id: res.botId })
+    .eq("id", meetingId);
+  revalidatePath(`/meetings/${meetingId}`);
+  return { ok: true };
 }
 
 export async function advanceStatus(
