@@ -377,6 +377,8 @@ export interface Database {
       has_position: { Args: { positions: string[] }; Returns: boolean };
       is_officer: { Args: Record<PropertyKey, never>; Returns: boolean };
       can_manage_register: { Args: Record<PropertyKey, never>; Returns: boolean };
+      app_session: { Args: Record<PropertyKey, never>; Returns: unknown };
+      nav_badges: { Args: Record<PropertyKey, never>; Returns: unknown };
     };
     Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };

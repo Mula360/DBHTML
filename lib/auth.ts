@@ -9,32 +9,36 @@ export interface SessionMember {
 }
 
 /**
- * Resolves the logged-in EC member and their current-term position.
- * Redirects to /login if there is no session, or to /login?error=not_member
- * if the authenticated email is not linked to a member row.
+ * Resolves the logged-in EC member and their current-term position in a single
+ * DB round-trip (app_session RPC). The JWT is verified locally via getClaims()
+ * — the middleware already did the authoritative getUser() check on this
+ * request, so a second network call to the auth server is avoided.
  * Cached per request.
  */
 export const getSessionMember = cache(async (): Promise<SessionMember> => {
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
 
-  const { data: member } = await supabase
-    .from("members")
-    .select("*")
-    .eq("auth_id", user.id)
-    .maybeSingle();
+  let hasSession = false;
+  try {
+    const { data } = await supabase.auth.getClaims();
+    hasSession = Boolean(data?.claims?.sub);
+  } catch {
+    hasSession = false;
+  }
+  if (!hasSession) {
+    // fall back to the authoritative check before bouncing
+    const { data } = await supabase.auth.getUser();
+    if (!data.user) redirect("/login");
+  }
 
-  if (!member) redirect("/login?error=not_member");
+  const { data: session } = await supabase.rpc("app_session");
+  const parsed = (session ?? null) as
+    | { member: MemberRow; position: PositionName | null }
+    | null;
 
-  const { data: position } = await supabase.rpc("get_my_position");
+  if (!parsed?.member) redirect("/login?error=not_member");
 
-  return {
-    member: member as MemberRow,
-    position: (position as PositionName | null) ?? null,
-  };
+  return { member: parsed.member, position: parsed.position ?? null };
 });
 
 export const OFFICERS: PositionName[] = ["President", "Secretary"];
