@@ -29,7 +29,15 @@ Wait for "Success. No rows returned" before the next one.
 
 1. `supabase/migrations/0001_init.sql`  ← creates all the tables
 2. `supabase/migrations/0002_rls.sql`   ← row-level security + helper functions
-3. `supabase/seed.sql`                  ← term 2026-28, config, 10 members, portfolios
+3. `supabase/migrations/0003_grants.sql` ← exposes the tables to the Data API
+4. `supabase/seed.sql`                  ← term 2026-28, config, 10 members, portfolios
+
+### API settings (Project Settings → API)
+
+- **Enable Data API:** ON (required).
+- **Automatically expose new tables:** OFF is fine — `0003_grants.sql` handles it.
+- **Enable automatic RLS:** ON (safety net; our migration already enables RLS
+  on every table).
 
 > **Before running `seed.sql`:** if you have the real 10 EC members, edit the
 > `names` and `emails` arrays near the top of the file first (keep the order:
