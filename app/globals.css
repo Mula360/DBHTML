@@ -115,3 +115,19 @@ select {
   background: var(--rag-red-bg);
   color: var(--rag-red-fg);
 }
+
+@media print {
+  nav,
+  header,
+  .no-print {
+    display: none !important;
+  }
+  main {
+    padding: 0 !important;
+    max-width: none !important;
+  }
+  .card {
+    border: 1px solid #ccc;
+    break-inside: avoid;
+  }
+}
