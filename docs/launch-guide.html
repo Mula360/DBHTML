@@ -1,0 +1,1011 @@
+<title>EC Portal Launch Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bitter:ital,wght@0,500;0,600;0,700;1,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+  :root {
+    --paper: #f5f6f3;
+    --paper-raised: #ffffff;
+    --ink: #1b211e;
+    --ink-soft: #4a534e;
+    --ink-faint: #79837d;
+    --rule: #dfe2dc;
+    --rule-soft: #eaece6;
+    --accent: #15594c;
+    --accent-soft: #e4efe9;
+    --ochre: #9a6b1f;
+    --ochre-soft: #f3ead9;
+    --good-bg: #e6f3ea;   --good-fg: #1a6d3e;
+    --warn-bg: #f8ecdc;   --warn-fg: #a1611b;
+    --crit-bg: #f7e5e1;   --crit-fg: #9a2c1e;
+
+    --font-display: "Bitter", Georgia, "Times New Roman", serif;
+    --font-body: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+    --measure: 68ch;
+    --pad: clamp(20px, 5vw, 56px);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #141816;
+      --paper-raised: #1c211e;
+      --ink: #e7eae5;
+      --ink-soft: #b3bab4;
+      --ink-faint: #7f8882;
+      --rule: #2e352f;
+      --rule-soft: #242a26;
+      --accent: #6fc7b1;
+      --accent-soft: #1e2c28;
+      --ochre: #d8ab63;
+      --ochre-soft: #2c2519;
+      --good-bg: #17281d;  --good-fg: #7fc79a;
+      --warn-bg: #2c2216;  --warn-fg: #d8a15f;
+      --crit-bg: #2c1a16;  --crit-fg: #e0917f;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #141816;
+    --paper-raised: #1c211e;
+    --ink: #e7eae5;
+    --ink-soft: #b3bab4;
+    --ink-faint: #7f8882;
+    --rule: #2e352f;
+    --rule-soft: #242a26;
+    --accent: #6fc7b1;
+    --accent-soft: #1e2c28;
+    --ochre: #d8ab63;
+    --ochre-soft: #2c2519;
+    --good-bg: #17281d;  --good-fg: #7fc79a;
+    --warn-bg: #2c2216;  --warn-fg: #d8a15f;
+    --crit-bg: #2c1a16;  --crit-fg: #e0917f;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 var(--pad);
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  @media (min-width: 1000px) {
+    .wrap { grid-template-columns: 220px minmax(0, 1fr); column-gap: 56px; }
+    .toc { display: block; }
+  }
+
+  /* ---- table of contents ---- */
+  .toc {
+    display: none;
+    position: sticky;
+    top: 0;
+    align-self: start;
+    padding: 48px 0;
+    max-height: 100vh;
+    overflow-y: auto;
+    border-right: 1px solid var(--rule);
+  }
+  .toc h2 {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 14px;
+  }
+  .toc ol { list-style: none; counter-reset: toc; }
+  .toc li { counter-increment: toc; margin: 2px 0; }
+  .toc a {
+    display: block;
+    padding: 5px 0 5px 26px;
+    position: relative;
+    color: var(--ink-soft);
+    text-decoration: none;
+    font-size: 13.5px;
+    line-height: 1.35;
+    border-radius: 4px;
+  }
+  .toc a::before {
+    content: counter(toc, decimal-leading-zero);
+    position: absolute;
+    left: 0;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-faint);
+    top: 6px;
+  }
+  .toc a:hover { color: var(--accent); }
+
+  /* ---- flow ---- */
+  main { padding: 48px 0 96px; min-width: 0; }
+
+  section { padding: 40px 0; border-top: 1px solid var(--rule); }
+  section:first-of-type { border-top: none; padding-top: 8px; }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(2.1rem, 6vw, 3.1rem);
+    line-height: 1.08;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+    margin-bottom: 18px;
+  }
+  h2 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.5rem, 3.6vw, 2rem);
+    line-height: 1.16;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+    margin-bottom: 8px;
+  }
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.16rem;
+    margin: 26px 0 8px;
+    letter-spacing: -0.005em;
+  }
+  h4 {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 0.83rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 20px 0 8px;
+  }
+
+  p { max-width: var(--measure); margin: 12px 0; color: var(--ink-soft); }
+  p strong { color: var(--ink); font-weight: 600; }
+  .lead { font-size: 1.14rem; color: var(--ink-soft); max-width: 60ch; }
+
+  a { color: var(--accent); text-underline-offset: 2px; }
+
+  ul, ol { max-width: var(--measure); margin: 12px 0; padding-left: 1.3em; color: var(--ink-soft); }
+  li { margin: 6px 0; }
+  li::marker { color: var(--ink-faint); }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.86em;
+    background: var(--rule-soft);
+    padding: 0.12em 0.4em;
+    border-radius: 4px;
+    color: var(--ink);
+    word-break: break-word;
+  }
+
+  pre {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.6;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    padding: 16px 18px;
+    overflow-x: auto;
+    margin: 14px 0;
+    max-width: 100%;
+  }
+  pre code { background: none; padding: 0; font-size: inherit; color: var(--ink-soft); }
+
+  /* ---- at a glance strip ---- */
+  .glance {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 28px 0 8px;
+  }
+  .glance div { background: var(--paper-raised); padding: 16px 18px; }
+  .glance dt {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 5px;
+  }
+  .glance dd {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.15;
+  }
+  .glance dd small { font-family: var(--font-body); font-size: 0.72rem; font-weight: 400; color: var(--ink-faint); display: block; }
+
+  /* ---- callouts ---- */
+  .note {
+    border: 1px solid var(--rule);
+    background: var(--paper-raised);
+    border-radius: 6px;
+    padding: 14px 16px;
+    margin: 16px 0;
+    max-width: var(--measure);
+    font-size: 0.95rem;
+  }
+  .note.tip { border-left: 3px solid var(--good-fg); }
+  .note.warn { border-left: 3px solid var(--warn-fg); }
+  .note .tag {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 4px;
+    color: var(--ink-faint);
+  }
+  .note p { margin: 4px 0; color: var(--ink-soft); }
+
+  /* ---- steps ---- */
+  .steps { counter-reset: step; margin-top: 12px; }
+  .step { position: relative; padding: 22px 0 22px 58px; border-top: 1px dashed var(--rule); }
+  .step:first-child { border-top: none; }
+  .step::before {
+    counter-increment: step;
+    content: counter(step);
+    position: absolute;
+    left: 0; top: 20px;
+    width: 38px; height: 38px;
+    display: grid; place-items: center;
+    font-family: var(--font-mono);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-radius: 50%;
+  }
+  .step h3 { margin-top: 2px; }
+
+  /* ---- tables ---- */
+  .tablewrap { overflow-x: auto; margin: 18px 0; border: 1px solid var(--rule); border-radius: 8px; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--rule-soft); vertical-align: top; }
+  th {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    background: var(--rule-soft);
+    white-space: nowrap;
+  }
+  tr:last-child td { border-bottom: none; }
+  td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  /* ---- chips ---- */
+  .chip {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.03em;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--rule-soft);
+    color: var(--ink-soft);
+    margin: 2px 3px 2px 0;
+    white-space: nowrap;
+  }
+  .chip.role { background: var(--accent-soft); color: var(--accent); }
+  .chip.good { background: var(--good-bg); color: var(--good-fg); }
+  .chip.warn { background: var(--warn-bg); color: var(--warn-fg); }
+  .chip.crit { background: var(--crit-bg); color: var(--crit-fg); }
+
+  /* ---- module cards ---- */
+  .modules { display: grid; gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; margin-top: 18px; }
+  .mod { background: var(--paper-raised); padding: 20px 22px; }
+  .mod h3 { margin: 0 0 4px; display: flex; align-items: baseline; gap: 10px; }
+  .mod h3 .path { font-family: var(--font-mono); font-size: 12px; font-weight: 400; color: var(--ink-faint); }
+  .mod p { margin: 6px 0; font-size: 0.95rem; }
+  .mod .who { margin-top: 8px; }
+  .mod .auto {
+    margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--rule);
+    font-size: 0.88rem; color: var(--ink-faint);
+  }
+  .mod .auto b { color: var(--ochre); font-weight: 600; }
+
+  /* ---- pipeline diagram ---- */
+  .pipe {
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch;
+    margin: 20px 0; font-size: 13px;
+  }
+  .pipe .node {
+    flex: 1 1 150px;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 12px 14px;
+  }
+  .pipe .node b { display: block; font-family: var(--font-display); font-size: 0.95rem; color: var(--ink); margin-bottom: 2px; }
+  .pipe .node span { color: var(--ink-faint); font-size: 12px; }
+  .pipe .arrow { align-self: center; color: var(--ink-faint); font-family: var(--font-mono); }
+
+  /* ---- checklist ---- */
+  .check { list-style: none; padding: 0; max-width: var(--measure); }
+  .check li { padding-left: 30px; position: relative; margin: 12px 0; color: var(--ink-soft); }
+  .check li::before {
+    content: "";
+    position: absolute; left: 0; top: 4px;
+    width: 16px; height: 16px;
+    border: 1.5px solid var(--ink-faint);
+    border-radius: 4px;
+  }
+  .check li b { color: var(--ink); font-weight: 600; }
+
+  header.masthead { padding-bottom: 8px; }
+  .masthead .kicker {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ochre);
+    margin-bottom: 16px;
+    display: flex; gap: 10px; align-items: center;
+  }
+  .masthead .kicker::after { content: ""; flex: 1; height: 1px; background: var(--rule); }
+
+  footer {
+    border-top: 1px solid var(--rule);
+    padding: 32px 0 8px;
+    font-size: 13px;
+    color: var(--ink-faint);
+    font-family: var(--font-mono);
+  }
+  footer a { color: var(--ink-soft); }
+
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+</style>
+
+<div class="wrap">
+  <nav class="toc" aria-label="Contents">
+    <h2>Contents</h2>
+    <ol>
+      <li><a href="#glance">At a glance</a></li>
+      <li><a href="#accounts">Accounts &amp; tiers</a></li>
+      <li><a href="#deploy">Deploy the app</a></li>
+      <li><a href="#pipeline">The AI pipeline</a></li>
+      <li><a href="#costs">Cost summary</a></li>
+      <li><a href="#else">What else is needed</a></li>
+      <li><a href="#functional">What was built</a></li>
+      <li><a href="#automation">The automation</a></li>
+      <li><a href="#security">Security model</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <header class="masthead">
+      <div class="kicker">Deccan Birders · Executive Committee</div>
+      <h1>EC Portal Launch Guide</h1>
+      <p class="lead">Everything needed to put the committee portal online, wire its
+      automated reminders and minute-taking pipeline, and understand — module by
+      module — what the tool actually does.</p>
+    </header>
+
+    <section id="glance">
+      <p class="eyebrow">Bottom line</p>
+      <h2>You can run this for nothing a month</h2>
+      <p>The whole portal fits inside the free tiers of Supabase, Vercel and
+      Resend. The only paid pieces are the optional <strong>meeting-bot pipeline</strong>
+      (Phase&nbsp;12) — and even that is a few rupees per meeting, drawn from a
+      one-time top-up.</p>
+
+      <dl class="glance">
+        <div><dt>Hosting + database + email</dt><dd>₹0 / mo<small>free tiers, comfortably within limits</small></dd></div>
+        <div><dt>Meeting bot (optional)</dt><dd>~$1 / mtg<small>Recall.ai $0.65/hr + Claude ~$0.08</small></dd></div>
+        <div><dt>First-year AI spend</dt><dd>≈ $0<small>free trial credits cover it</small></dd></div>
+        <div><dt>Time to deploy</dt><dd>~90 min<small>most of it DNS + Supabase auth setup</small></dd></div>
+      </dl>
+    </section>
+
+    <section id="accounts">
+      <p class="eyebrow">Step 0</p>
+      <h2>Accounts you need</h2>
+      <p>Four services for the core portal, two more only if you switch on the
+      meeting bot. Everything below has a real free tier that fits a 10-person
+      committee and a ~570-row membership register.</p>
+
+      <div class="tablewrap">
+        <table>
+          <thead>
+            <tr><th>Service</th><th>Role</th><th>Tier to use</th><th>Cost</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>GitHub</b></td>
+              <td>Holds the code (<code>Mula360/DBHTML</code>)</td>
+              <td>Free</td>
+              <td class="num">$0</td>
+            </tr>
+            <tr>
+              <td><b>Supabase</b></td>
+              <td>Postgres database, magic-link login, row-level security</td>
+              <td>Free<small style="display:block;color:var(--ink-faint)">500&nbsp;MB DB, 50k monthly users, 5&nbsp;GB egress</small></td>
+              <td class="num">$0<br><span style="color:var(--ink-faint)">Pro $25/mo if ever outgrown</span></td>
+            </tr>
+            <tr>
+              <td><b>Vercel</b></td>
+              <td>Runs the Next.js app and the daily cron job</td>
+              <td>Hobby (free) or Pro</td>
+              <td class="num">$0<br><span style="color:var(--ink-faint)">Pro $20/mo</span></td>
+            </tr>
+            <tr>
+              <td><b>Resend</b></td>
+              <td>Sends digests, reminders and (via SMTP) the login links</td>
+              <td>Free<small style="display:block;color:var(--ink-faint)">3,000 emails/mo, 100/day</small></td>
+              <td class="num">$0</td>
+            </tr>
+            <tr>
+              <td><b>Anthropic</b> <span class="chip">Phase 12</span></td>
+              <td>Drafts minutes from the meeting transcript (Claude)</td>
+              <td>Pay-as-you-go</td>
+              <td class="num">$5 min top-up<br><span style="color:var(--ink-faint)">$5 free trial credit</span></td>
+            </tr>
+            <tr>
+              <td><b>Recall.ai</b> <span class="chip">Phase 12</span></td>
+              <td>Sends a bot into the Google Meet call to record + transcribe</td>
+              <td>Pay-as-you-go</td>
+              <td class="num">$0.65/hr<br><span style="color:var(--ink-faint)">first 5 hrs free</span></td>
+            </tr>
+            <tr>
+              <td><b>A domain</b> <span class="chip">optional</span></td>
+              <td>Nice URL + a verified email sender (<code>ec@yourdomain.org</code>)</td>
+              <td>Any registrar</td>
+              <td class="num">~$12/yr</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note">
+        <span class="tag">Already done</span>
+        <p>The Supabase project <code>wmpuxjlfqujvfsehqjnt</code> exists, all four
+        migrations are applied, and it is seeded with 10 placeholder members. The
+        code is on <code>Mula360/DBHTML</code>. You are picking up from a working,
+        tested build.</p>
+      </div>
+    </section>
+
+    <section id="deploy">
+      <p class="eyebrow">Core portal</p>
+      <h2>Deploy the app, end to end</h2>
+      <p>Six steps. The app is stateless — all persistent data lives in Supabase —
+      so deployment is just "point a Next.js host at the right environment
+      variables."</p>
+
+      <div class="steps">
+
+        <div class="step">
+          <h3>Finalise the database</h3>
+          <p>In the Supabase <b>SQL Editor</b>, edit the <code>names</code> and
+          <code>emails</code> arrays at the top of <code>supabase/seed.sql</code>
+          with the real 10 committee members (order: President, VP-1, VP-2,
+          Secretary, Treasurer, EC1–EC5) and run it. Then confirm the four
+          baseline numbers in <b>Settings → Baseline minimums</b> once you're
+          logged in — they default to 2 field trips, 8 meetings, 2 events, and 1
+          Pitta contribution per 180 days, with quorum at ⅓ of the EC.</p>
+          <div class="note warn">
+            <span class="tag">Important</span>
+            <p>Only emails in the <code>members</code> table can ever log in. Seed
+            the real people <em>before</em> sharing the link, or the first login
+            attempt bounces.</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <h3>Set up Resend (email)</h3>
+          <p>Two things run on Resend:</p>
+          <ul>
+            <li><b>App email</b> — digests and reminders, sent straight from the
+            app's API. Needs only <code>RESEND_API_KEY</code> and a verified
+            sender.</li>
+            <li><b>Login links</b> — sent by Supabase's auth system, which is
+            rate-limited to ~4/hour unless you give it your own SMTP.</li>
+          </ul>
+          <p>In Resend: create an account, <b>add your domain</b> and paste the
+          DNS records it gives you at your registrar (SPF, DKIM, a return-path
+          CNAME). Once it verifies, create an <b>API key</b>. Set
+          <code>RESEND_FROM_EMAIL</code> to something on that domain, e.g.
+          <code>ec@deccanbirders.org</code>.</p>
+          <p>Then in <b>Supabase → Project Settings → Auth → SMTP Settings</b>,
+          enable custom SMTP with:</p>
+          <pre><code>Host:      smtp.resend.com
+Port:      465
+Username:  resend
+Password:  &lt;your Resend API key&gt;
+Sender:    ec@deccanbirders.org</code></pre>
+          <div class="note tip">
+            <span class="tag">No domain yet?</span>
+            <p>You can launch on Resend's shared <code>onboarding@resend.dev</code>
+            sender and Supabase's built-in email for a small pilot — just expect
+            login links to be slow if several people sign in at once. Add the
+            domain before rolling out to the whole committee.</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <h3>Deploy to Vercel</h3>
+          <p><b>vercel.com → Add New → Project → Import</b> the
+          <code>Mula360/DBHTML</code> repo (framework auto-detects as Next.js).
+          Under <b>Environment Variables</b>, add all of these (Production +
+          Preview):</p>
+          <pre><code>NEXT_PUBLIC_SUPABASE_URL       = https://wmpuxjlfqujvfsehqjnt.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY  = &lt;anon key, Supabase → Settings → API&gt;
+SUPABASE_SERVICE_ROLE_KEY      = &lt;service_role key, same page&gt;
+NEXT_PUBLIC_APP_URL            = https://your-app.vercel.app
+CRON_SECRET                    = &lt;run: openssl rand -hex 24&gt;
+RESEND_API_KEY                 = &lt;from step 2&gt;
+RESEND_FROM_EMAIL             = ec@deccanbirders.org</code></pre>
+          <p>Click <b>Deploy</b>. The <code>vercel.json</code> in the repo already
+          declares the cron schedule (<code>30 2 * * *</code> — 08:00 IST); Vercel
+          picks it up automatically and, because <code>CRON_SECRET</code> is set,
+          sends it as the bearer token the app checks for.</p>
+          <div class="note">
+            <span class="tag">Plan note</span>
+            <p>Hobby allows one cron run per day (delayed up to an hour) — which
+            is exactly what this needs. If you want cron to fire on the minute, or
+            you consider a society tool "commercial", use Pro ($20/mo). Function
+            timeout is 60s on both, and the daily job finishes in seconds.</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <h3>Point Supabase auth at the live URL</h3>
+          <p>Back in <b>Supabase → Authentication → URL Configuration</b>:</p>
+          <ul>
+            <li><b>Site URL</b> → <code>https://your-app.vercel.app</code></li>
+            <li><b>Redirect URLs</b> → add <code>https://your-app.vercel.app/auth/callback</code></li>
+          </ul>
+          <p>If you later add a custom domain, come back and update both. Redeploy
+          the Vercel project after changing <code>NEXT_PUBLIC_APP_URL</code>.</p>
+        </div>
+
+        <div class="step">
+          <h3>Custom domain <span class="chip">optional</span></h3>
+          <p>In Vercel → <b>Settings → Domains</b>, add
+          <code>ec.deccanbirders.org</code> and follow the CNAME instructions.
+          Update <code>NEXT_PUBLIC_APP_URL</code>, the Supabase Site URL, and the
+          redirect URL to match, then redeploy.</p>
+        </div>
+
+        <div class="step">
+          <h3>Smoke-test the live site</h3>
+          <ul>
+            <li>Open the URL → you're bounced to <code>/login</code>.</li>
+            <li>Enter a seeded member's email → magic-link email arrives → click →
+            you land on the dashboard with your position badge.</li>
+            <li>Enter an email that <em>isn't</em> a member → "This app is for
+            Deccan Birders EC members."</li>
+            <li>Create a meeting, mark attendance, watch the quorum banner change.</li>
+            <li>Trigger the cron manually to be sure the secret matches:
+            <pre><code>curl -H "Authorization: Bearer &lt;CRON_SECRET&gt;" \
+  https://your-app.vercel.app/api/cron/daily</code></pre>
+            It should return <code>{"ok":true, ...}</code> with an empty
+            <code>errors</code> object.</li>
+          </ul>
+        </div>
+
+      </div>
+
+      <h3>Running on Railway instead</h3>
+      <p>Railway works identically for the app, but its cron is a separate
+      scheduled service rather than a config file. Deploy the repo as a web
+      service with the same env vars, then add a second <b>Cron</b> service on the
+      schedule <code>30 2 * * *</code> with start command
+      <code>node scripts/trigger-cron.mjs</code> and the
+      <code>NEXT_PUBLIC_APP_URL</code> + <code>CRON_SECRET</code> vars. The repo
+      ships both <code>vercel.json</code> and that script.</p>
+    </section>
+
+    <section id="pipeline">
+      <p class="eyebrow">Phase 12 · optional</p>
+      <h2>The meeting-bot &amp; AI minutes pipeline</h2>
+      <p>This is the only part that needs paid API keys. Left unconfigured, the
+      "Activate meeting bot" button simply tells you it's off — nothing else in
+      the portal depends on it.</p>
+
+      <h3>What happens, start to finish</h3>
+      <div class="pipe">
+        <div class="node"><b>Secretary</b><span>adds the Google&nbsp;Meet link to the meeting, clicks "Activate bot"</span></div>
+        <div class="arrow">→</div>
+        <div class="node"><b>Recall.ai</b><span>a bot joins the call, records &amp; transcribes it</span></div>
+        <div class="arrow">→</div>
+        <div class="node"><b>Webhook</b><span><code>/api/recall-webhook</code> stores the transcript on the meeting</span></div>
+        <div class="arrow">→</div>
+        <div class="node"><b>Claude</b><span>drafts decisions, action items (matched to members), attendance</span></div>
+        <div class="arrow">→</div>
+        <div class="node"><b>Draft MoM</b><span>pre-filled for the Secretary to edit &amp; approve — <em>nothing is emailed automatically</em></span></div>
+      </div>
+
+      <h3>Anthropic (Claude) setup</h3>
+      <ol>
+        <li>Sign up at <b>console.anthropic.com</b> (phone verification; new
+        accounts get <b>$5 in free trial credit</b>).</li>
+        <li><b>Settings → Billing</b> → optionally add a card and top up (minimum
+        <b>$5</b>). Leave auto-reload <em>off</em> so it can never run up a bill —
+        it just stops if credits run out.</li>
+        <li><b>API Keys → Create Key</b>. Add to Vercel:
+        <pre><code>ANTHROPIC_API_KEY = sk-ant-...
+ANTHROPIC_MODEL   = claude-sonnet-4-6   # optional; this is the default</code></pre></li>
+      </ol>
+      <div class="note">
+        <span class="tag">Cost, concretely</span>
+        <p>Claude Sonnet 4.6 is $3 per million input tokens, $15 per million
+        output. A 1½-hour transcript is roughly 20,000 input tokens; the JSON of
+        minutes is ~1,500 output. That's about <b>$0.08 per meeting</b>. Ten EC
+        meetings a year ≈ <b>$0.80/year</b> — the free trial credit alone lasts
+        years.</p>
+      </div>
+
+      <h3>Recall.ai setup</h3>
+      <ol>
+        <li>Sign up at <b>recall.ai</b> and create an API key
+        (<b>Pay-as-you-go</b> plan; first 5 recording hours are free).</li>
+        <li>Add a webhook pointing at your deployment:
+        <pre><code>URL:    https://your-app.vercel.app/api/recall-webhook
+Events: transcript.done  (and bot status events)</code></pre></li>
+        <li>Pick any shared secret and set it in <em>both</em> places — Recall's
+        webhook config and Vercel:
+        <pre><code>RECALL_API_KEY        = &lt;from Recall&gt;
+RECALL_WEBHOOK_SECRET = &lt;a random string, same on both sides&gt;</code></pre>
+        The webhook rejects any call whose <code>x-recall-signature</code> header
+        (or <code>?secret=</code>) doesn't match.</li>
+        <li>Redeploy Vercel so the new variables take effect.</li>
+      </ol>
+      <div class="note">
+        <span class="tag">Cost, concretely</span>
+        <p>$0.50/hr recording + $0.15/hr transcription = <b>$0.65/hr</b>, billed
+        to the second, no monthly fee. Ten 1½-hour meetings ≈ 15 hours ≈
+        <b>$9.75/year</b> (first year less the 5 free hours). Storage is free for
+        7 days — long enough for the webhook to pull the transcript — then
+        $0.05/hr if you keep recordings, which this app doesn't ask it to.</p>
+      </div>
+
+      <h3>Testing it</h3>
+      <ul>
+        <li>Create a meeting, paste a real <code>meet.google.com</code> link, click
+        <b>Activate meeting bot</b> → chip turns to "Bot scheduled".</li>
+        <li>Start that Meet call yourself; the Recall bot joins within a minute.
+        Say a couple of test "decisions" and "action items" out loud, then end the
+        call.</li>
+        <li>Within a few minutes the chip flips to "Transcript received" and the
+        <b>Minutes</b> section is pre-filled with a Draft MoM. Edit, approve,
+        publish as normal.</li>
+      </ul>
+
+      <h3>Turning it off</h3>
+      <p>Delete the three <code>ANTHROPIC_*</code> / <code>RECALL_*</code>
+      variables (or just leave them unset). The pipeline code stays in the build
+      but goes inert; minutes are then written by hand in the same editor.</p>
+    </section>
+
+    <section id="costs">
+      <p class="eyebrow">Reference</p>
+      <h2>Cost summary</h2>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Item</th><th>When</th><th>Realistic annual cost</th></tr></thead>
+          <tbody>
+            <tr><td>Supabase (Free)</td><td>always</td><td class="num">$0</td></tr>
+            <tr><td>Vercel Hobby</td><td>always</td><td class="num">$0</td></tr>
+            <tr><td>Resend Free</td><td>always</td><td class="num">$0</td></tr>
+            <tr><td>Domain</td><td>if you want a custom URL</td><td class="num">~$12</td></tr>
+            <tr><td>Anthropic / Claude</td><td>meeting bot on</td><td class="num">≈ $1 <span style="color:var(--ink-faint)">(covered yr 1 by trial credit)</span></td></tr>
+            <tr><td>Recall.ai</td><td>meeting bot on</td><td class="num">≈ $7–12</td></tr>
+            <tr><td>Vercel Pro</td><td>only if you need exact cron timing / commercial ToS</td><td class="num">$240</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><b>Minimum viable:</b> $0/year. <b>With the meeting bot and a domain:</b>
+      roughly <b>$20/year</b>, most of it Recall.ai recording time.</p>
+    </section>
+
+    <section id="else">
+      <p class="eyebrow">Before the committee uses it</p>
+      <h2>What else is needed</h2>
+      <p>None of these are code — they're decisions and inputs only the committee
+      can supply.</p>
+      <ul class="check">
+        <li><b>Real member data.</b> The 10 names and emails, and their positions
+        for the 2026–28 term. Optionally their eBird usernames and phone numbers
+        (each member can fill their own later).</li>
+        <li><b>Confirm the baseline rules.</b> The four minimums, the Pitta window
+        (180 days), the compliance year (Sept–Aug), the quorum fraction (⅓), and
+        whether an apology counts as attendance and whether virtual presence
+        counts toward quorum. These come straight from the Roles &amp;
+        Responsibilities document and the bye-laws — set them once in
+        <b>Settings</b>; every change is logged.</li>
+        <li><b>Confirm the 11 portfolio assignments.</b> The seed uses a plausible
+        mapping (Website → Secretary + EC1, etc.); the President or Secretary
+        should set the real leads and support on each portfolio page.</li>
+        <li><b>The membership register.</b> Export your current members
+        spreadsheet to CSV; the import wizard maps the columns and previews before
+        loading. Nothing about payments or emailing general members is in scope.</li>
+        <li><b>An administrator.</b> Compliance-config and position changes sit
+        with the President and Secretary only. Decide who holds it.</li>
+        <li><b>Meeting practice, if using the bot.</b> Standardise on Google Meet,
+        and agree that the Secretary tells participants at the top of each call
+        that it's being recorded and transcribed.</li>
+        <li><b>A note to members.</b> Their attendance, contributions and contact
+        details live in this tool; the full membership register is visible to the
+        register managers. Worth a line in the next EC email.</li>
+        <li><b>Backups.</b> Supabase Free keeps automated backups for a short
+        window; take a manual <code>pg_dump</code> before big changes, or move to
+        Pro (7-day point-in-time recovery) once the register is loaded.</li>
+      </ul>
+    </section>
+
+    <section id="functional">
+      <p class="eyebrow">Reference</p>
+      <h2>What was built, module by module</h2>
+      <p>Thirteen screens behind a magic-link login, one shared sidebar, and a
+      once-a-day background job. Every member can read almost everything; <span
+      class="chip role">write access</span> is granted per module by committee
+      position.</p>
+
+      <h4>The roles</h4>
+      <p>Positions for the current term drive every permission:
+      <span class="chip role">President</span>
+      <span class="chip role">VP-1</span>
+      <span class="chip role">VP-2</span>
+      <span class="chip role">Secretary</span>
+      <span class="chip role">Treasurer</span>
+      <span class="chip role">EC1–EC5</span>.
+      "Officer" means President or Secretary. VP-1 is also the Pitta Editor.</p>
+
+      <div class="modules">
+
+        <div class="mod">
+          <h3>Dashboard <span class="path">/dashboard</span></h3>
+          <p>Your landing page: position badge, your open action items grouped
+          Overdue / Due this week / Upcoming, the next meetings and walks, and your
+          four baseline-obligation tallies as coloured chips. The Treasurer also
+          sees a pending-claims count.</p>
+        </div>
+
+        <div class="mod">
+          <h3>Action Items <span class="path">/action-items</span></h3>
+          <p>Every task the committee owns. Create with a title, assignee, due
+          date, priority and portfolio tag; filter by any of those or search;
+          open one to change status (Open → In&nbsp;progress → Done, or Dropped
+          with a required reason), leave comments, and read the activity trail.
+          Overdue is computed live — red past due, amber within three days.</p>
+          <div class="who">
+            <span class="chip">anyone creates &amp; comments</span>
+            <span class="chip role">assignee / creator / officer</span> edits status
+            <span class="chip role">officer</span> deletes
+          </div>
+          <div class="auto"><b>Automated:</b> a reminder 3 days before the due
+          date, an alert to the assignee <em>and</em> the portfolio lead the day
+          it goes overdue, and a running escalation digest to the President and
+          Secretary for anything 7+ days overdue.</div>
+        </div>
+
+        <div class="mod">
+          <h3>Meetings &amp; MoM <span class="path">/meetings</span></h3>
+          <p>The full meeting lifecycle: Draft → Agenda sent → In progress →
+          MoM&nbsp;draft → Approved → Published. Sending the agenda emails it to
+          every active member. An attendance grid records present / absent /
+          apology and in-person / virtual per person, and recomputes quorum on
+          every save. The minutes editor has structured sections — Decisions,
+          Action Items (staged, then created for real on approval), Announcements,
+          Next steps. Publishing emails the minutes to all members.</p>
+          <div class="who">
+            <span class="chip role">Secretary / President</span> record attendance
+            <span class="chip role">creator / officer</span> drive the status &amp; minutes
+          </div>
+          <div class="auto"><b>Rule 26:</b> quorum = ⌈active&nbsp;EC × ⅓⌉, counted
+          from in-person attendance (virtual too only if the bye-law flag is set).
+          A no-quorum meeting shows a red "decisions not binding" banner, and
+          publishing its minutes needs a typed <code>PUBLISH ANYWAY</code> and
+          stamps a Rule 26 notice on the document.</div>
+        </div>
+
+        <div class="mod">
+          <h3>Baseline Obligations <span class="path">/compliance</span></h3>
+          <p>A 10&nbsp;×&nbsp;4 grid — every member against field trips
+          coordinated, meetings attended, events assisted and Pitta contributions
+          — coloured green / amber / red by <em>pace</em>: amber means keeping up
+          with the calendar, red means behind it. Every number is derived from the
+          other modules; nothing is entered here.</p>
+          <div class="who"><span class="chip">everyone reads</span>
+          <span class="chip role">President / Secretary</span> edit the minimums in Settings</div>
+          <div class="auto"><b>Automated:</b> a mid-year pace alert to members
+          who've fallen behind (copied to the Secretary), a Pitta nudge ~30 days
+          before someone's rolling window lapses, and a full year-end compliance
+          report to the officers on the configured date.</div>
+        </div>
+
+        <div class="mod">
+          <h3>Walks &amp; Field Trips <span class="path">/walks</span></h3>
+          <p>Create a walk with location, date, meeting point, type and one or
+          more coordinators. The eBird checklist and a Google&nbsp;Drive photo
+          link are shown as buttons — there's deliberately no species list or
+          photo upload here; eBird and Drive are the record. Members RSVP; after
+          the walk a coordinator ticks who actually came.</p>
+          <div class="who"><span class="chip">anyone creates</span>
+          <span class="chip role">coordinator / Secretary</span> marks attendance</div>
+          <div class="auto"><b>Automated:</b> a reminder the day before to
+          everyone who RSVP'd "attending". Coordinating a walk feeds the field-trip
+          obligation — co-coordinators each get full credit.</div>
+        </div>
+
+        <div class="mod">
+          <h3>Annual Events &amp; the AGM <span class="path">/events</span></h3>
+          <p>Bird Race, Annual Dinner, AWC, HBA season, outreach and the AGM.
+          Helpers add themselves; the event lead confirms who genuinely assisted
+          (only confirmed assists count for compliance). Choosing type
+          <b>AGM</b> with a date auto-builds the statutory checklist: the 15-day
+          notice deadline, the nomination window, and warnings until the venue is
+          named in the notice.</p>
+          <div class="who"><span class="chip">members self-add as helpers</span>
+          <span class="chip role">lead / Secretary</span> confirm &amp; edit</div>
+          <div class="auto"><b>Automated:</b> event reminders at T-30, T-7 and T-1;
+          for an AGM, alerts to the Secretary at T-30 / T-20 / T-17 if the notice
+          still hasn't gone out.</div>
+        </div>
+
+        <div class="mod">
+          <h3>Statutory Tracker <span class="path">/statutory</span></h3>
+          <p>Registrar filings, IT-department returns, audit deadlines — anything
+          with an external authority and a due date. Items can carry a Drive link
+          to the filed document and be marked "recurring yearly".</p>
+          <div class="who"><span class="chip role">Secretary / President / Treasurer</span></div>
+          <div class="auto"><b>Automated:</b> a reminder to the Secretary 14 days
+          before each due date; completed recurring items clone themselves into
+          next year.</div>
+        </div>
+
+        <div class="mod">
+          <h3>Pitta Newsletter <span class="path">/pitta</span></h3>
+          <p>One row per issue (number, theme, target date, status
+          Planning → Writing → Layout → Published). Inside an issue, a table of all
+          10 members where the editor types each person's contribution title.
+          Publishing stamps every contribution with the publish date, which is
+          what the rolling-window compliance check measures against.</p>
+          <div class="who"><span class="chip role">VP-1 (Editor) / Secretary / President</span></div>
+          <div class="auto">The index shows a live list of who has <em>no</em>
+          contribution inside the current window, with days since their last one.</div>
+        </div>
+
+        <div class="mod">
+          <h3>Portfolio pages <span class="path">/portfolios/…</span></h3>
+          <p>One page per portfolio (11 of them), driven by the current-term
+          assignment. Each shows lead + support, a datestamped status-update log
+          any member can post to, the open action items tagged to that portfolio,
+          and linked events. HBA and AWC get extra panels — a 4-step season
+          checklist and a per-site count / Wetlands-International flag; Bird Race
+          gets a planning checklist.</p>
+          <div class="who"><span class="chip">anyone posts updates</span>
+          <span class="chip role">President / Secretary</span> set the lead &amp; support</div>
+        </div>
+
+        <div class="mod">
+          <h3>Membership Register <span class="path">/membership</span></h3>
+          <p>The ~570 general members — who never log in. Search and filter by
+          status or type; import from CSV with a column-mapping wizard and a
+          preview; export back to CSV for AGM quorum counts. "Mark renewed" sets
+          the next due date a year out. Deletes are soft only.</p>
+          <div class="who"><span class="chip role">VP-1, VP-2, EC2, Treasurer, Secretary, President</span> — others see nothing here</div>
+          <div class="auto"><b>Automated:</b> nightly status recompute — Due 30
+          days before the renewal date, Lapsed 60 days after, Life always active —
+          and a renewals-due list folded into the monthly digest for the Member
+          Engagement portfolio and the Treasurer.</div>
+        </div>
+
+        <div class="mod">
+          <h3>Reports <span class="path">/reports</span></h3>
+          <p>A per-member annual report (obligations, action-item completion rate,
+          walks coordinated / attended, Pitta history) laid out for print-to-PDF;
+          and an EC-wide report — the obligations grid, a portfolio status summary,
+          and an attendance heatmap of members against every meeting with a quorum
+          row. Plus an archive of every digest the system has sent.</p>
+        </div>
+
+        <div class="mod">
+          <h3>Documents <span class="path">/documents</span></h3>
+          <p>A register of links, not files — bye-laws, the R&amp;R framework, the
+          MoM archive, finance and handover docs, grouped by category with
+          bye-laws pinned to the top.</p>
+          <div class="who"><span class="chip">anyone adds</span>
+          <span class="chip role">Secretary / President</span> delete</div>
+        </div>
+
+        <div class="mod">
+          <h3>Expense Claims <span class="path">/finances</span></h3>
+          <p>A member submits an amount, a description and a Drive receipt link;
+          the Treasurer moves it Pending → Approved → Settled (or Rejects it), and
+          the claimant is notified at each step. The Society's audited accounts
+          stay the system of record — there's no ledger here.</p>
+          <div class="who"><span class="chip">any member submits their own</span>
+          <span class="chip role">Treasurer</span> actions them</div>
+        </div>
+
+      </div>
+    </section>
+
+    <section id="automation">
+      <p class="eyebrow">Reference</p>
+      <h2>The once-a-day job</h2>
+      <p>A single scheduled request at 08:00 IST runs everything below. It reads
+      every threshold from the Settings config — nothing is hard-coded — and each
+      task is isolated, so one failing never stops the rest. Every email it sends
+      is mirrored to an in-app notification.</p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Cadence</th><th>What it does</th></tr></thead>
+          <tbody>
+            <tr><td>Every day</td><td>Due-in-3-days and newly-overdue action-item alerts · 7+-day escalation digest to officers · walk-tomorrow reminders · membership status recompute · statutory 14-day reminders · event T-30/7/1 reminders · AGM notice alerts · recurring-statutory clone · Pitta window nudges</td></tr>
+            <tr><td>Mondays</td><td>Per-member weekly digest — open items by urgency plus the week's walks, meetings and events</td></tr>
+            <tr><td>1st of the month</td><td>EC-wide digest — items closed / overdue / upcoming, portfolio update counts — plus a renewals-due list to Member Engagement and the Treasurer</td></tr>
+            <tr><td>Mid-year date</td><td>Pace alerts to members behind on their obligations, copied to the Secretary</td></tr>
+            <tr><td>Year-end date</td><td>Full compliance report emailed to the President and Secretary and filed in the digest archive</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="security">
+      <p class="eyebrow">Reference</p>
+      <h2>How access is enforced</h2>
+      <ul>
+        <li><b>Login is members-only.</b> The form checks the email against the
+        <code>members</code> table before sending a link, and the callback signs
+        out any unknown email that somehow gets one.</li>
+        <li><b>Every table has row-level security</b> in the database itself — not
+        just the UI. A helper resolves your current-term position on each request,
+        and policies decide what you can read and write. The membership register
+        and other members' expense claims return <em>zero rows</em> to someone
+        without the right position, even if they craft the request by hand. This
+        is covered by an automated test that signs in as a plain member and
+        asserts the walls hold.</li>
+        <li><b>The service key stays server-side</b> — used only by the cron job,
+        the login check and the meeting webhook, never sent to a browser.</li>
+        <li><b>The meeting webhook is authenticated</b> by a shared secret; a
+        request without it is rejected before anything is read.</li>
+      </ul>
+    </section>
+
+    <footer>
+      <p>Deccan Birders EC Portal · repo <a href="https://github.com/Mula360/DBHTML">Mula360/DBHTML</a> ·
+      Next.js 14 + Supabase · all 12 build phases complete, verified against a live database.</p>
+    </footer>
+
+  </main>
+</div>
