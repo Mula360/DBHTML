@@ -204,6 +204,130 @@ export type SocietyMemberRow = {
   updated_at: Timestamptz;
 }
 
+export type ComplianceConfigAuditRow = {
+  id: Uuid;
+  config_id: Uuid | null;
+  changed_by: Uuid | null;
+  field_name: string | null;
+  old_value: string | null;
+  new_value: string | null;
+  changed_at: Timestamptz;
+}
+
+export type WalkCoordinatorRow = {
+  id: Uuid;
+  walk_id: Uuid;
+  member_id: Uuid;
+}
+
+export type WalkAttendanceRow = {
+  id: Uuid;
+  walk_id: Uuid;
+  member_id: Uuid;
+  rsvp_status: "attending" | "not_attending" | null;
+  actually_attended: boolean | null;
+}
+
+export type EventRow = {
+  id: Uuid;
+  title: string;
+  type: "AGM" | "AnnualDinner" | "BirdRace" | "AWC" | "HBASeason" | "Outreach" | "Other";
+  date: DateStr | null;
+  venue: string | null;
+  portfolio_tag: string | null;
+  lead_id: Uuid | null;
+  status: "Planning" | "Confirmed" | "Done";
+  outcome_notes: string | null;
+}
+
+export type EventHelperRow = {
+  id: Uuid;
+  event_id: Uuid;
+  member_id: Uuid;
+  confirmed_by_lead: boolean;
+}
+
+export type AgmChecklistRow = {
+  id: Uuid;
+  event_id: Uuid;
+  notice_deadline: DateStr | null;
+  notice_sent_date: DateStr | null;
+  venue_named_in_notice: boolean;
+  nominations_open: DateStr | null;
+  nominations_close: DateStr | null;
+  quorum_required: number;
+  post_agm_filings_done: boolean;
+}
+
+export type PittaIssueRow = {
+  id: Uuid;
+  issue_number: string | null;
+  theme: string | null;
+  target_publish_date: DateStr | null;
+  actual_publish_date: DateStr | null;
+  status: "Planning" | "Writing" | "Layout" | "Published";
+}
+
+export type PittaContributionRow = {
+  id: Uuid;
+  issue_id: Uuid | null;
+  member_id: Uuid;
+  contribution_title: string;
+  submitted_at: DateStr;
+}
+
+export type PortfolioUpdateRow = {
+  id: Uuid;
+  portfolio_name: string;
+  update_text: string;
+  created_by: Uuid | null;
+  created_at: Timestamptz;
+}
+
+export type HbaSeasonRow = {
+  id: Uuid;
+  season_name: string | null;
+  start_date: DateStr | null;
+  end_date: DateStr | null;
+  coverage_target_pct: number | null;
+  current_pct: number | null;
+  briefing_done: boolean;
+  teams_allocated: boolean;
+  data_submitted: boolean;
+  pitta_report_done: boolean;
+}
+
+export type AwcSiteRow = {
+  id: Uuid;
+  year: number | null;
+  site_name: string | null;
+  assigned_team: string | null;
+  count_done: boolean;
+  species_count: number | null;
+  submitted_wi: boolean;
+}
+
+export type DocumentRow = {
+  id: Uuid;
+  title: string;
+  category: "ByeLaws" | "MoMArchive" | "Finance" | "HBA" | "AWC" | "Handover" | "Other";
+  url: string;
+  added_by: Uuid | null;
+  term_id: Uuid | null;
+  created_at: Timestamptz;
+}
+
+export type ExpenseClaimRow = {
+  id: Uuid;
+  member_id: Uuid;
+  amount: number;
+  description: string | null;
+  receipt_url: string | null;
+  status: "Pending" | "Approved" | "Rejected" | "Settled";
+  settled_at: Timestamptz | null;
+  created_at: Timestamptz;
+}
+
 // Generic table shape for tables not yet explicitly modelled.
 type Loose = { id: Uuid; [key: string]: unknown };
 
@@ -222,27 +346,27 @@ export interface Database {
       member_positions: Table<MemberPositionRow>;
       portfolio_assignments: Table<PortfolioAssignmentRow>;
       compliance_config: Table<ComplianceConfigRow>;
-      compliance_config_audit: Table<Loose>;
+      compliance_config_audit: Table<ComplianceConfigAuditRow>;
       action_items: Table<ActionItemRow>;
       action_comments: Table<ActionCommentRow>;
       meetings: Table<MeetingRow>;
       meeting_attendance: Table<MeetingAttendanceRow>;
       moms: Table<MomRow>;
       walks: Table<WalkRow>;
-      walk_coordinators: Table<Loose>;
-      walk_attendance: Table<Loose>;
-      events: Table<Loose>;
-      event_helpers: Table<Loose>;
-      agm_checklists: Table<Loose>;
-      portfolio_updates: Table<Loose>;
-      hba_seasons: Table<Loose>;
-      awc_sites: Table<Loose>;
-      pitta_issues: Table<Loose>;
-      pitta_contributions: Table<Loose>;
+      walk_coordinators: Table<WalkCoordinatorRow>;
+      walk_attendance: Table<WalkAttendanceRow>;
+      events: Table<EventRow>;
+      event_helpers: Table<EventHelperRow>;
+      agm_checklists: Table<AgmChecklistRow>;
+      portfolio_updates: Table<PortfolioUpdateRow>;
+      hba_seasons: Table<HbaSeasonRow>;
+      awc_sites: Table<AwcSiteRow>;
+      pitta_issues: Table<PittaIssueRow>;
+      pitta_contributions: Table<PittaContributionRow>;
       society_members: Table<SocietyMemberRow>;
-      expense_claims: Table<Loose>;
+      expense_claims: Table<ExpenseClaimRow>;
       statutory_items: Table<StatutoryItemRow>;
-      documents: Table<Loose>;
+      documents: Table<DocumentRow>;
       notifications: Table<NotificationRow>;
       digest_log: Table<Loose>;
     };
@@ -252,6 +376,7 @@ export interface Database {
       auth_member_id: { Args: Record<PropertyKey, never>; Returns: string };
       has_position: { Args: { positions: string[] }; Returns: boolean };
       is_officer: { Args: Record<PropertyKey, never>; Returns: boolean };
+      can_manage_register: { Args: Record<PropertyKey, never>; Returns: boolean };
     };
     Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };

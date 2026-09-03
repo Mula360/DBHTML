@@ -6,6 +6,12 @@ import { runWalkReminders } from "./tasks/walks";
 import { runSocietyMemberStatusRecompute } from "./tasks/societyMembers";
 import { runStatutoryReminders } from "./tasks/statutory";
 import { runWeeklyDigest, runMonthlyDigest } from "./tasks/digests";
+import {
+  runMidyearPaceAlert,
+  runPittaNudge,
+  runYearendReport,
+} from "./tasks/compliance";
+import type { ComplianceConfigRow } from "@/lib/database.types";
 
 type DB = SupabaseClient<Database>;
 type IstParts = ReturnType<typeof istParts>;
@@ -43,11 +49,17 @@ export async function runDailyDispatcher(
     }
   };
 
-  const { data: config } = await db
+  const { data: configRaw } = await db
     .from("compliance_config")
     .select("*, terms!inner(is_current)")
     .eq("terms.is_current", true)
     .maybeSingle();
+  let config: ComplianceConfigRow | null = null;
+  if (configRaw) {
+    const rest = { ...(configRaw as ComplianceConfigRow & { terms?: unknown }) };
+    delete rest.terms;
+    config = rest as ComplianceConfigRow;
+  }
 
   // ---- EVERY DAY ----------------------------------------------------------
   await step("action_item_reminders", () => runActionItemReminders(db, today));
@@ -67,18 +79,27 @@ export async function runDailyDispatcher(
     await step("monthly_digest", () => runMonthlyDigest(db, today));
   }
 
-  // ---- MID-YEAR PACE ALERT (Phase 4) -------------------------------
-  if (config && parts.day === 1 && parts.month === config.midyear_alert_month) {
-    ran.push("midyear_alert:pending-P4");
+  // ---- COMPLIANCE: Pitta nudge (daily check; monthly for "never") -----
+  if (config) {
+    await step("pitta_nudge", () =>
+      runPittaNudge(db, config, today, parts.day === 1),
+    );
   }
 
-  // ---- YEAR-END COMPLIANCE REPORT (Phase 4) ----------------------
+  // ---- MID-YEAR PACE ALERT ------------------------------------------
+  if (config && parts.day === 1 && parts.month === config.midyear_alert_month) {
+    await step("midyear_pace_alert", () =>
+      runMidyearPaceAlert(db, config, today),
+    );
+  }
+
+  // ---- YEAR-END COMPLIANCE REPORT ----------------------------------
   if (
     config &&
     parts.month === config.yearend_report_month &&
     parts.day === config.yearend_report_day
   ) {
-    ran.push("yearend_report:pending-P4");
+    await step("yearend_report", () => runYearendReport(db, config, today));
   }
 
   return { ran, counts, errors };

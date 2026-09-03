@@ -1,7 +1,37 @@
+import Link from "next/link";
 import { getSessionMember } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { istToday, addDays } from "@/lib/dates";
+import { computeAllObligations, getCurrentConfig } from "@/lib/compliance-compute";
 import type { ActionItemRow } from "@/lib/database.types";
+
+const RAG_CLASS = { green: "rag-green", amber: "rag-amber", red: "rag-red" } as const;
+
+async function MyObligations({ memberId }: { memberId: string }) {
+  const db = createClient();
+  const config = await getCurrentConfig(db);
+  if (!config) return null;
+  const rows = await computeAllObligations(db, config);
+  const mine = rows.find((r) => r.member.id === memberId);
+  if (!mine) return null;
+  return (
+    <section className="card">
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
+        <h3 style={{ marginBottom: 8 }}>My baseline obligations</h3>
+        <Link href="/compliance" style={{ fontSize: 13 }}>
+          Full tracker →
+        </Link>
+      </div>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        {mine.obligations.map((o) => (
+          <span key={o.key} className={`badge ${RAG_CLASS[o.rag]}`}>
+            {o.label}: {o.achieved}/{o.minimum}
+          </span>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 export const dynamic = "force-dynamic";
 
@@ -87,13 +117,7 @@ export default async function DashboardPage() {
         </section>
       </div>
 
-      <section className="card">
-        <h3 style={{ marginBottom: 6 }}>My baseline obligations</h3>
-        <p style={{ color: "#889", fontSize: 14 }}>
-          Full tracker on the Compliance page. Tallies populate as meetings,
-          walks, events and Pitta contributions are recorded.
-        </p>
-      </section>
+      <MyObligations memberId={member.id} />
     </div>
   );
 }
