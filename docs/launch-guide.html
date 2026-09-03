@@ -390,6 +390,46 @@
   }
   footer a { color: var(--ink-soft); }
 
+  /* ---- screen sketch ---- */
+  .screen {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.5;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-top: 3px solid var(--ochre);
+    border-radius: 6px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: var(--ink-soft);
+    white-space: pre;
+  }
+  .screen b { color: var(--ink); }
+
+  .taskgrid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); margin-top: 16px; }
+  .taskgrid .t {
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    padding: 14px 16px;
+  }
+  .taskgrid .t h4 { margin: 0 0 6px; color: var(--accent); text-transform: none; font-size: 0.9rem; letter-spacing: 0; }
+  .taskgrid .t p { margin: 0; font-size: 0.88rem; }
+
+  blockquote {
+    border-left: 3px solid var(--ochre);
+    background: var(--ochre-soft);
+    padding: 14px 18px;
+    border-radius: 0 6px 6px 0;
+    margin: 16px 0;
+    max-width: var(--measure);
+  }
+  blockquote p { margin: 6px 0; color: var(--ink-soft); }
+  blockquote p:first-child { margin-top: 0; }
+  blockquote p:last-child { margin-bottom: 0; }
+
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
 </style>
 
@@ -401,6 +441,9 @@
       <li><a href="#accounts">Accounts &amp; tiers</a></li>
       <li><a href="#deploy">Deploy the app</a></li>
       <li><a href="#pipeline">The AI pipeline</a></li>
+      <li><a href="#admin">Administrator setup</a></li>
+      <li><a href="#members">Getting members started</a></li>
+      <li><a href="#routine">The weekly routine</a></li>
       <li><a href="#costs">Cost summary</a></li>
       <li><a href="#else">What else is needed</a></li>
       <li><a href="#functional">What was built</a></li>
@@ -713,6 +756,242 @@ RECALL_WEBHOOK_SECRET = &lt;a random string, same on both sides&gt;</code></pre>
       <p>Delete the three <code>ANTHROPIC_*</code> / <code>RECALL_*</code>
       variables (or just leave them unset). The pipeline code stays in the build
       but goes inert; minutes are then written by hand in the same editor.</p>
+    </section>
+
+    <section id="admin">
+      <p class="eyebrow">Once the portal is live</p>
+      <h2>Administrator setup</h2>
+      <p>Do this once, before telling the committee to log in — about two hours,
+      most of it the membership CSV and backfilling this term's activity. You
+      need to be signed in as the <strong>President</strong> or
+      <strong>Secretary</strong>; the seed already gives you that position, so
+      officer powers are automatic.</p>
+
+      <div class="steps">
+
+        <div class="step">
+          <h3>Log in and confirm your role</h3>
+          <p>Sign in, and check the badge beside your name in the top bar reads
+          <b>President</b> or <b>Secretary</b>. "No position" means the seed
+          didn't link your email — fix the <code>member_positions</code> row in
+          Supabase and log in again.</p>
+          <div class="screen">┌──────────────────────────────────────────────────────────┐
+│  ◧ EC Portal          [ <b>Secretary</b> ]  Sneha Reddy  (SR)  ⏻ │
+├────────────┬─────────────────────────────────────────────┤
+│ Dashboard  │  Hello, Sneha                                │
+│ My Tasks   │  You are <b>Secretary</b> · EC year 2026            │
+│ Meetings   │  ┌── My baseline obligations ───────────┐    │
+│ …          │  │ Field trips 0/2   Meetings 0/8  …     │    │
+│ Settings   │  └──────────────────────────────────────┘    │
+└────────────┴─────────────────────────────────────────────┘</div>
+        </div>
+
+        <div class="step">
+          <h3>Set the baseline rules — <b>Settings</b></h3>
+          <p>Sidebar → <b>Settings</b> → the <b>Baseline minimums &amp; rules</b>
+          panel (officers only). These drive every green/amber/red in the portal,
+          and every change is written to an audit log at the bottom of the
+          panel.</p>
+          <div class="screen">┌── Baseline minimums &amp; rules ──────────────────────────────┐
+│  Min field trips / year        [ 2 ]                      │
+│  Min meetings / year           [ 8 ]                      │
+│  Min events / year             [ 2 ]                      │
+│  Min Pitta contributions       [ 1 ]                      │
+│  Pitta rolling window (days)   [ 180 ]  ← not per-year    │
+│  Compliance year start / end   [ 9 ] / [ 8 ]  Sept–Aug    │
+│  Mid-year alert month          [ 3 ]                      │
+│  Year-end report month / day   [ 7 ] / [ 15 ]             │
+│  Quorum fraction (Rule 26)     [ 0.3334 ]  one third      │
+│  ☐ Apology counts as attended                            │
+│  ☐ Allow event/trip double-count                         │
+│  ☐ Virtual attendance counts for quorum                  │
+│           [ Save minimums ]                               │
+└──────────────────────────────────────────────────────────┘</div>
+          <p>Set each from the <strong>Roles &amp; Responsibilities</strong>
+          document and the bye-laws. The three checkboxes are usually left off —
+          tick them only if a bye-law amendment specifically says so.</p>
+        </div>
+
+        <div class="step">
+          <h3>Assign the 11 portfolios</h3>
+          <p>Open each portfolio page (<b>Portfolios</b> → the name) and use the
+          <b>Assignment</b> panel to set the real lead and support members. The
+          seed ships a plausible guess (Website → Secretary + EC1, Member
+          Engagement → VP-1 + EC2, and so on) — replace it with your actual
+          allocation from the Society's portfolio document.</p>
+        </div>
+
+        <div class="step">
+          <h3>Add the key documents — <b>Documents</b></h3>
+          <p>Add a link for the bye-laws (auto-pins to the top), the R&amp;R
+          framework (auto-pins if its title says "R&amp;R" or "Roles and
+          Responsibilities"), the MoM archive folder, previous-EC handover notes,
+          and finance links. Any member can add; only officers delete.</p>
+        </div>
+
+        <div class="step">
+          <h3>Load the statutory tracker — <b>Statutory Tracker</b></h3>
+          <p>Add each external obligation with its due date and, where it repeats,
+          tick <b>recurring yearly</b>: the post-AGM Registrar filing, the annual
+          IT-department return, the audit sign-off, plus any one-offs this term.
+          The Secretary is reminded 14 days out; done recurring items clone into
+          next year.</p>
+        </div>
+
+        <div class="step">
+          <h3>Import the membership register</h3>
+          <p><b>Membership Register → Import CSV</b>. Export your current members
+          spreadsheet to CSV, upload it, correct the auto-guessed column mapping
+          (only <em>Name</em> is required), check the 5-row preview, and import.
+          Dates must be <code>YYYY-MM-DD</code> — reformat in the spreadsheet
+          first if not. The nightly job then sets each member's status (Due 30
+          days before renewal, Lapsed 60 days after, Life always active).</p>
+          <div class="screen">┌── Map fields ────────────────────────────────────────────┐
+│  Name *              [ Full Name          ▾ ]            │
+│  Email               [ Email address      ▾ ]            │
+│  Membership type     [ Type (Annual/Life) ▾ ]            │
+│  Renewal due date    [ Renewal due        ▾ ]            │
+├── Preview — 573 rows total ──────────────────────────────┤
+│  A. Krishnan   ak@example.com   Annual   2026-10-01      │
+│  …                                                        │
+└──────────────────  [ Import 573 rows ]  ─────────────────┘</div>
+        </div>
+
+        <div class="step">
+          <h3>Backfill this term's history</h3>
+          <p><strong>This is the step that makes the compliance tracker
+          meaningful.</strong> It colours a member red when they are
+          <em>behind pace</em> — and with nothing recorded yet, everyone is behind
+          pace. Enter what has already happened this compliance year, in priority
+          order:</p>
+          <ul>
+            <li><b>Past EC meetings + attendance</b> (biggest signal). For each:
+            <em>Meetings &amp; MoM → New meeting</em> with the real date → open it
+            → <em>Attendance</em> grid → mark all 10 → <em>Save</em> → move status
+            to <em>Published</em>. Each "present" tick now counts toward that
+            member's meetings tally.</li>
+            <li><b>Past walks</b>: <em>Walks → New walk</em> with date and
+            coordinator(s) → because the date is past you'll see <em>Mark who
+            attended</em> → tick and save. Coordinating feeds the field-trip
+            obligation.</li>
+            <li><b>Past events</b>: <em>Annual Events → New event</em> → ask each
+            helper to open it and click "I'll help", then the lead confirms
+            (members self-add — an officer can't add on their behalf).</li>
+            <li><b>Past Pitta issues</b>: <em>Pitta → New issue</em> → type each
+            contributor's title in the table → <em>Publish</em> (stamps the
+            contribution dates).</li>
+          </ul>
+          <div class="note warn">
+            <span class="tag">If you deploy well into the term</span>
+            <p>If full backfill isn't practical, tell the committee that tallies
+            build from today and will be right by the year-end report. Don't
+            shorten the compliance year to hide the gap — the R&amp;R minimums are
+            annual figures.</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <h3>Test the meeting bot <span class="chip">if configured</span></h3>
+          <p>Create a meeting with a real Meet link → <em>Activate meeting
+          bot</em> → start that call yourself → say a couple of test decisions
+          out loud → end it. Within minutes the chip flips to "Transcript
+          received" and the Minutes section is pre-filled. Nothing was emailed.</p>
+        </div>
+
+        <div class="step">
+          <h3>Roll out</h3>
+          <p>Send the committee the welcome note (next section). From here the
+          portal runs its own reminders and digests — your job becomes
+          per-meeting plus a monthly glance.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <section id="members">
+      <p class="eyebrow">For the committee</p>
+      <h2>Getting members started</h2>
+
+      <h3>The welcome email to send</h3>
+      <blockquote>
+        <p><b>Subject: The new EC portal — 5-minute setup</b></p>
+        <p>Team — our committee operations now run through a portal:
+        <b>https://ec.deccanbirders.org</b>.</p>
+        <p><b>To sign in:</b> go to the link, enter <em>this</em> email address,
+        and click the link we send you. No password; it works for an hour.</p>
+        <p><b>First time, please do three things (5 minutes):</b></p>
+        <p>1. <b>Complete your profile</b> — top-right menu → Settings → add your
+        phone and eBird username → Update profile.<br>
+        2. <b>Open "My Tasks"</b> — your action items live here; you'll get an
+        email 3 days before anything is due.<br>
+        3. <b>Open "Baseline Obligations"</b> — the R&amp;R minimums tracker (2
+        field trips, 8 meetings, 2 events, 1 Pitta). Your row shows where you
+        stand.</p>
+        <p><b>What's automatic:</b> a personal digest every Monday, an EC-wide one
+        on the 1st, walk reminders the day before, overdue nudges. You don't have
+        to check the portal daily.</p>
+      </blockquote>
+
+      <h3>What each member does on first login</h3>
+      <div class="screen">Top-right menu ▸ Settings ▸ My profile
+┌──────────────────────────────────────────────┐
+│  Umesh M. · umesh@example.com · <b>VP-1</b>          │
+│  Phone           [ +91 98xxxxxx12 ]          │
+│  eBird username  [ umesh_m ]                  │
+│  Avatar URL      [ (optional) ]              │
+│           [ Update profile ]                  │
+└──────────────────────────────────────────────┘</div>
+      <p>Members can only edit <em>their own</em> row — the administrator cannot
+      do this for them, by design.</p>
+
+      <h3>The 2-minute orientation</h3>
+      <div class="taskgrid">
+        <div class="t"><h4>See what's on my plate</h4><p>My Tasks, or the Dashboard</p></div>
+        <div class="t"><h4>Check my R&amp;R standing</h4><p>Baseline Obligations — my row</p></div>
+        <div class="t"><h4>RSVP to a walk</h4><p>Walks → the walk → Attending</p></div>
+        <div class="t"><h4>See the next meeting + agenda</h4><p>Meetings &amp; MoM</p></div>
+        <div class="t"><h4>Volunteer for an event</h4><p>Annual Events → the event → "I'll help with this"</p></div>
+        <div class="t"><h4>Update my portfolio</h4><p>Portfolios → mine → post an update</p></div>
+        <div class="t"><h4>Submit an expense</h4><p>Expense Claims → the form</p></div>
+        <div class="t"><h4>Find the bye-laws</h4><p>Documents — pinned at the top</p></div>
+      </div>
+    </section>
+
+    <section id="routine">
+      <p class="eyebrow">Ongoing</p>
+      <h2>The weekly routine</h2>
+
+      <h3>For every EC meeting — the Secretary</h3>
+      <ol>
+        <li><b>Before:</b> <em>Meetings &amp; MoM → New meeting</em> (title, date,
+        time, agenda, Meet link) → status <b>Agenda sent</b> emails it to all
+        members.</li>
+        <li><b>During / after:</b> open it → <em>Attendance</em> grid → mark
+        everyone → Save → read the quorum banner.</li>
+        <li><b>Minutes:</b> status <em>In progress → MoM draft</em> → fill
+        Decisions, Action Items (task, assignee, due), Announcements, Next
+        steps.</li>
+        <li><b>Approve:</b> <em>Approve minutes &amp; create action items</em> —
+        every staged item is created in Action Items, linked to the meeting.</li>
+        <li><b>Publish:</b> emails the minutes to all members. A no-quorum meeting
+        needs a typed <code>PUBLISH ANYWAY</code> and carries a Rule 26 notice.</li>
+      </ol>
+
+      <h3>Monthly — any officer, 5 minutes</h3>
+      <ul>
+        <li><b>Baseline Obligations</b> — scan for red rows.</li>
+        <li><b>Statutory Tracker</b> — anything amber (≤14 days) or red.</li>
+        <li><b>Reports → EC-wide</b> — the attendance heatmap and portfolio
+        summary in one view.</li>
+      </ul>
+
+      <h3>When a member joins or leaves mid-term</h3>
+      <p>Currently a small database edit (a future "manage EC roster" screen would
+      remove this): <b>leaving</b> — set an <code>end_date</code> on their
+      <code>member_positions</code> row, and <code>is_active = false</code> on
+      <code>members</code> to cut access entirely; <b>joining a vacancy</b> — add
+      a <code>member_positions</code> row with the position,
+      <code>start_date</code> and a <code>vacancy_reason</code>.</p>
     </section>
 
     <section id="costs">
