@@ -97,6 +97,41 @@ update `NEXT_PUBLIC_APP_URL` + the two Supabase URLs, redeploy.
 - `curl -H "Authorization: Bearer <CRON_SECRET>" https://<your>.vercel.app/api/cron/daily`
   → `{"ok":true, ... "errors":{}}`.
 
+### Diagnosing a broken deployment
+
+If login rejects a valid member with "This app is for Deccan Birders EC
+members", the deployment can't reach the database. Open:
+
+```
+https://<your-app>.vercel.app/api/health
+```
+
+It reports (no secrets, no member data):
+
+- `supabaseUrl` / `projectRef` — which project the deployment is pointed at
+- `serviceKey.role` — should be `service_role`, **not** `anon`
+- `refsMatch` — whether the URL, anon key and service key are all the same project
+- `membersVisible` — should be `10`; `null` with a `dbError` means the
+  service-role key is wrong or lacks grants
+
+Fix the offending env var, then **redeploy** (env changes don't apply to an
+existing build).
+
+### Test / demo accounts (password login)
+
+The login page has a "Have a test password?" link for email + password sign-in.
+It only works for accounts that have a password set — regular members use magic
+links only. The seeded test accounts:
+
+| Email | Password | Role |
+|---|---|---|
+| `member1@example.com` | `DeccanAdmin2026` | President — officer / admin powers |
+| `member10@example.com` | `DeccanMember2026` | EC5 — plain member |
+| `srikanth@deccanbirders.org` | `DeccanSec2026` | Secretary — officer / admin powers |
+
+Change or remove these before going live (Supabase → Authentication → Users, or
+`node scripts/set-demo-passwords.mjs` — see the script header).
+
 ### Railway alternative
 Deploy the repo as a web service with the same env vars, then add a **Cron**
 service (`30 2 * * *`, start command `node scripts/trigger-cron.mjs`, with

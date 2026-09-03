@@ -1,6 +1,7 @@
 "use server";
 
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -54,4 +55,49 @@ export async function requestMagicLink(
     ok: true,
     message: `Check ${email} for a sign-in link. It expires in 1 hour.`,
   };
+}
+
+/**
+ * Email + password login. Only works for accounts that have a password set
+ * (the demo/test accounts) — members who only use magic links have none, so
+ * this path simply fails for them. Same members-only gate as the magic link.
+ */
+export async function passwordSignIn(
+  _prev: LoginState,
+  formData: FormData,
+): Promise<LoginState> {
+  const email = String(formData.get("email") || "")
+    .trim()
+    .toLowerCase();
+  const password = String(formData.get("password") || "");
+  if (!email || !password) {
+    return { ok: false, message: "Enter your email and password." };
+  }
+
+  const admin = createAdminClient();
+  const { data: member } = await admin
+    .from("members")
+    .select("id, auth_id")
+    .eq("email", email)
+    .eq("is_active", true)
+    .maybeSingle();
+  if (!member) return { ok: false, message: NOT_MEMBER_MSG };
+
+  const supabase = createClient();
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+  if (error || !data.user) {
+    return { ok: false, message: "Wrong email or password." };
+  }
+
+  if (member.auth_id !== data.user.id) {
+    await admin
+      .from("members")
+      .update({ auth_id: data.user.id })
+      .eq("id", member.id);
+  }
+
+  redirect("/dashboard");
 }
