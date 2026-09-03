@@ -47,6 +47,27 @@ function groupItems(items: ActionItemRow[], today: string) {
   };
 }
 
+async function TreasurerWidget() {
+  const db = createClient();
+  const { count } = await db
+    .from("expense_claims")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "Pending");
+  return (
+    <section className={`card ${count ? "rag-amber" : ""}`}>
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
+        <h3>Expense claims</h3>
+        <Link href="/finances" style={{ fontSize: 13 }}>
+          Open →
+        </Link>
+      </div>
+      <p style={{ fontSize: 14, marginTop: 4 }}>
+        {count ?? 0} claim(s) awaiting your action.
+      </p>
+    </section>
+  );
+}
+
 export default async function DashboardPage() {
   const { member, position } = await getSessionMember();
   const supabase = createClient();
@@ -118,6 +139,7 @@ export default async function DashboardPage() {
       </div>
 
       <MyObligations memberId={member.id} />
+      {position === "Treasurer" && <TreasurerWidget />}
     </div>
   );
 }

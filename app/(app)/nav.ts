@@ -52,6 +52,7 @@ export const NAV: NavSection[] = [
       { label: "Walks & Field Trips", href: "/walks" },
       { label: "Annual Events", href: "/events" },
       { label: "Pitta Newsletter", href: "/pitta" },
+      { label: "Expense Claims", href: "/finances" },
       {
         label: "Membership Register",
         href: "/membership",
