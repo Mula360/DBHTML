@@ -21,9 +21,9 @@ const env = Object.fromEntries(
     }),
 );
 
-const URL_ = env.NEXT_PUBLIC_SUPABASE_URL;
+const URL_ = env.SUPABASE_URL;
 const SVC = env.SUPABASE_SERVICE_ROLE_KEY;
-const ANON = env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const ANON = env.SUPABASE_ANON_KEY;
 const PW = "e2e-test-Passw0rd!";
 
 let passed = 0;

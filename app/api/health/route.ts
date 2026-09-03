@@ -3,6 +3,11 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
+const envVal = (...names: string[]) => {
+  for (const n of names) if (process.env[n]) return process.env[n]!;
+  return undefined;
+};
+
 /**
  * Ops diagnostic. Reports whether the deployment can reach Supabase with its
  * service-role key. Exposes only the (already public) Supabase URL and a row
@@ -11,8 +16,9 @@ export const dynamic = "force-dynamic";
  *   GET /api/health
  */
 export async function GET() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? null;
-  const anonPresent = Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  const url = envVal("SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_URL") ?? null;
+  const anonKeyVal = envVal("SUPABASE_ANON_KEY", "NEXT_PUBLIC_SUPABASE_ANON_KEY");
+  const anonPresent = Boolean(anonKeyVal);
   const servicePresent = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
 
   const decodeRef = (jwt?: string) => {
@@ -24,7 +30,7 @@ export async function GET() {
       return null;
     }
   };
-  const anon = decodeRef(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  const anon = decodeRef(anonKeyVal);
   const svc = decodeRef(process.env.SUPABASE_SERVICE_ROLE_KEY);
 
   let membersVisible: number | null = null;

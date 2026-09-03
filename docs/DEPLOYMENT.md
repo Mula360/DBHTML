@@ -64,10 +64,10 @@ a small pilot; add the domain before rolling out to everyone.
 1. vercel.com → **Add New → Project → Import** `Mula360/DBHTML` (auto-detects Next.js).
 2. **Environment Variables** (Production + Preview):
    ```
-   NEXT_PUBLIC_SUPABASE_URL       = https://wmpuxjlfqujvfsehqjnt.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY  = <anon key — Supabase → Settings → API>
+   SUPABASE_URL       = https://wmpuxjlfqujvfsehqjnt.supabase.co
+   SUPABASE_ANON_KEY  = <anon key — Supabase → Settings → API>
    SUPABASE_SERVICE_ROLE_KEY      = <service_role key — same page>
-   NEXT_PUBLIC_APP_URL            = https://<your>.vercel.app
+   APP_URL            = https://<your>.vercel.app
    CRON_SECRET                    = <openssl rand -hex 24>
    RESEND_API_KEY                 = <from step 2>
    RESEND_FROM_EMAIL             = ec@yourdomain.org
@@ -84,11 +84,11 @@ Supabase → **Authentication → URL Configuration**:
 - Site URL → `https://<your>.vercel.app`
 - Redirect URLs → add `https://<your>.vercel.app/auth/callback`
 
-Redeploy Vercel after any `NEXT_PUBLIC_APP_URL` change.
+Redeploy Vercel after any `APP_URL` change.
 
 ### 5. Custom domain (optional)
 Vercel → Settings → Domains → add `ec.yourdomain.org`, follow the CNAME steps,
-update `NEXT_PUBLIC_APP_URL` + the two Supabase URLs, redeploy.
+update `APP_URL` + the two Supabase URLs, redeploy.
 
 ### 6. Smoke test
 - Open the URL → bounced to `/login`.
@@ -135,7 +135,7 @@ Change or remove these before going live (Supabase → Authentication → Users,
 ### Railway alternative
 Deploy the repo as a web service with the same env vars, then add a **Cron**
 service (`30 2 * * *`, start command `node scripts/trigger-cron.mjs`, with
-`NEXT_PUBLIC_APP_URL` + `CRON_SECRET`).
+`APP_URL` + `CRON_SECRET`).
 
 ---
 

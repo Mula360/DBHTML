@@ -10,9 +10,9 @@ const env = Object.fromEntries(
     }),
 );
 
-const URL_ = env.NEXT_PUBLIC_SUPABASE_URL;
+const URL_ = env.SUPABASE_URL;
 const svc = env.SUPABASE_SERVICE_ROLE_KEY;
-const anon = env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const anon = env.SUPABASE_ANON_KEY;
 
 // Create a confirmed auth user for a seeded EC member, link auth_id, sign in.
 const TEST_PW = "rls-test-Passw0rd!";

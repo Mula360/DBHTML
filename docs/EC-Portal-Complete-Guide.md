@@ -101,10 +101,10 @@ rolling out to the whole committee.
 2. Under **Environment Variables**, add all of these (Production and Preview):
 
    ```
-   NEXT_PUBLIC_SUPABASE_URL       = https://wmpuxjlfqujvfsehqjnt.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY  = <anon key — Supabase → Settings → API>
+   SUPABASE_URL       = https://wmpuxjlfqujvfsehqjnt.supabase.co
+   SUPABASE_ANON_KEY  = <anon key — Supabase → Settings → API>
    SUPABASE_SERVICE_ROLE_KEY      = <service_role key — same page>
-   NEXT_PUBLIC_APP_URL            = https://<your-project>.vercel.app
+   APP_URL            = https://<your-project>.vercel.app
    CRON_SECRET                    = <run: openssl rand -hex 24>
    RESEND_API_KEY                 = <from step 1.3>
    RESEND_FROM_EMAIL             = ec@deccanbirders.org
@@ -125,12 +125,12 @@ Supabase → **Authentication → URL Configuration**:
 - **Site URL** → `https://<your-project>.vercel.app`
 - **Redirect URLs** → add `https://<your-project>.vercel.app/auth/callback`
 
-Redeploy the Vercel project after any change to `NEXT_PUBLIC_APP_URL`.
+Redeploy the Vercel project after any change to `APP_URL`.
 
 ## 1.6 Custom domain *(optional)*
 
 Vercel → **Settings → Domains** → add `ec.deccanbirders.org`, follow the CNAME
-instructions, then update `NEXT_PUBLIC_APP_URL` and both Supabase URLs to match
+instructions, then update `APP_URL` and both Supabase URLs to match
 and redeploy.
 
 ## 1.7 Smoke test
@@ -778,10 +778,10 @@ editor.
 
 | Variable | Required | What it is |
 |---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | yes | `https://wmpuxjlfqujvfsehqjnt.supabase.co` |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | yes | Supabase → Settings → API → anon public |
+| `SUPABASE_URL` | yes | `https://wmpuxjlfqujvfsehqjnt.supabase.co` |
+| `SUPABASE_ANON_KEY` | yes | Supabase → Settings → API → anon public |
 | `SUPABASE_SERVICE_ROLE_KEY` | yes | Supabase → Settings → API → service_role secret |
-| `NEXT_PUBLIC_APP_URL` | yes | the deployed URL, e.g. `https://ec.deccanbirders.org` |
+| `APP_URL` | yes | the deployed URL, e.g. `https://ec.deccanbirders.org` |
 | `CRON_SECRET` | yes | any random string; the daily job's bearer token |
 | `RESEND_API_KEY` | for email | Resend → API Keys |
 | `RESEND_FROM_EMAIL` | for email | a verified sender, e.g. `ec@deccanbirders.org` |

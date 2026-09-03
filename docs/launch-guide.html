@@ -608,10 +608,10 @@ Sender:    ec@deccanbirders.org</code></pre>
           <code>Mula360/DBHTML</code> repo (framework auto-detects as Next.js).
           Under <b>Environment Variables</b>, add all of these (Production +
           Preview):</p>
-          <pre><code>NEXT_PUBLIC_SUPABASE_URL       = https://wmpuxjlfqujvfsehqjnt.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY  = &lt;anon key, Supabase → Settings → API&gt;
+          <pre><code>SUPABASE_URL       = https://wmpuxjlfqujvfsehqjnt.supabase.co
+SUPABASE_ANON_KEY  = &lt;anon key, Supabase → Settings → API&gt;
 SUPABASE_SERVICE_ROLE_KEY      = &lt;service_role key, same page&gt;
-NEXT_PUBLIC_APP_URL            = https://your-app.vercel.app
+APP_URL            = https://your-app.vercel.app
 CRON_SECRET                    = &lt;run: openssl rand -hex 24&gt;
 RESEND_API_KEY                 = &lt;from step 2&gt;
 RESEND_FROM_EMAIL             = ec@deccanbirders.org</code></pre>
@@ -636,14 +636,14 @@ RESEND_FROM_EMAIL             = ec@deccanbirders.org</code></pre>
             <li><b>Redirect URLs</b> → add <code>https://your-app.vercel.app/auth/callback</code></li>
           </ul>
           <p>If you later add a custom domain, come back and update both. Redeploy
-          the Vercel project after changing <code>NEXT_PUBLIC_APP_URL</code>.</p>
+          the Vercel project after changing <code>APP_URL</code>.</p>
         </div>
 
         <div class="step">
           <h3>Custom domain <span class="chip">optional</span></h3>
           <p>In Vercel → <b>Settings → Domains</b>, add
           <code>ec.deccanbirders.org</code> and follow the CNAME instructions.
-          Update <code>NEXT_PUBLIC_APP_URL</code>, the Supabase Site URL, and the
+          Update <code>APP_URL</code>, the Supabase Site URL, and the
           redirect URL to match, then redeploy.</p>
         </div>
 
@@ -672,7 +672,7 @@ RESEND_FROM_EMAIL             = ec@deccanbirders.org</code></pre>
       service with the same env vars, then add a second <b>Cron</b> service on the
       schedule <code>30 2 * * *</code> with start command
       <code>node scripts/trigger-cron.mjs</code> and the
-      <code>NEXT_PUBLIC_APP_URL</code> + <code>CRON_SECRET</code> vars. The repo
+      <code>APP_URL</code> + <code>CRON_SECRET</code> vars. The repo
       ships both <code>vercel.json</code> and that script.</p>
     </section>
 

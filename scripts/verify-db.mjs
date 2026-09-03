@@ -10,9 +10,9 @@ const env = Object.fromEntries(
     }),
 );
 
-const base = `${env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1`;
+const base = `${env.SUPABASE_URL}/rest/v1`;
 const svc = env.SUPABASE_SERVICE_ROLE_KEY;
-const anon = env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const anon = env.SUPABASE_ANON_KEY;
 
 async function q(path, key, opts = {}) {
   const res = await fetch(`${base}${path}`, {

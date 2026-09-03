@@ -58,9 +58,12 @@ Copy these three values — you'll paste them into `.env.local` in step 5:
 
 | Dashboard label | Goes into |
 |---|---|
-| **Project URL** | `NEXT_PUBLIC_SUPABASE_URL` |
-| **Project API keys → `anon` `public`** | `NEXT_PUBLIC_SUPABASE_ANON_KEY` |
+| **Project URL** | `SUPABASE_URL` — ends in `.supabase.co` (not `.com`) |
+| **Project API keys → `anon` `public`** | `SUPABASE_ANON_KEY` |
 | **Project API keys → `service_role` `secret`** (click *Reveal*) | `SUPABASE_SERVICE_ROLE_KEY` |
+
+None of these need a `NEXT_PUBLIC_` prefix — the app has no browser-side
+Supabase client, so everything is server-only.
 
 The `service_role` key bypasses all security — treat it like a password, never
 put it in client code or commit it.
@@ -97,10 +100,10 @@ cp .env.example .env.local
 Open `.env.local` and fill in:
 
 ```
-NEXT_PUBLIC_SUPABASE_URL=            # from step 3
-NEXT_PUBLIC_SUPABASE_ANON_KEY=       # from step 3
+SUPABASE_URL=            # from step 3
+SUPABASE_ANON_KEY=       # from step 3
 SUPABASE_SERVICE_ROLE_KEY=           # from step 3
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+APP_URL=http://localhost:3000
 CRON_SECRET=                         # any random string, e.g. `openssl rand -hex 16`
 RESEND_API_KEY=                      # leave blank for now — emails just log to the console
 RESEND_FROM_EMAIL=ec@example.com
@@ -118,9 +121,14 @@ npm install
 npm run dev
 ```
 
-Open <http://localhost:3000>, enter one of the seeded member emails
-(e.g. `member4@example.com` = Secretary). You'll get a magic-link email from
-Supabase — click it, and you land on the dashboard.
+Open <http://localhost:3000>. Either:
+
+- **Magic link:** enter a seeded member email (e.g. `srikanth@deccanbirders.org`
+  = Secretary) and click the link Supabase emails you, **or**
+- **Password (test accounts):** click "Have a test password?" and use
+  `member1@example.com` / `DeccanAdmin2026` (President, admin) or
+  `member10@example.com` / `DeccanMember2026` (plain member). Run
+  `node scripts/set-demo-passwords.mjs` to (re)create these.
 
 - No email arriving? Check **Authentication → Logs** in the dashboard. On the
   free tier Supabase sends ~3–4 auth emails/hour from a shared address; for
