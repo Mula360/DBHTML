@@ -42,9 +42,10 @@ for (const t of tables) {
   const r = await q(`/${t}?select=*`, svc, {
     headers: { prefer: "count=exact", range: "0-0" },
   });
+  const ok = r.status === 200 || r.status === 206;
   console.log(
-    `${r.status === 200 ? "ok  " : "ERR "} ${t.padEnd(22)} ${
-      r.status === 200 ? (r.count ?? "") : JSON.stringify(r.body)
+    `${ok ? "ok  " : "ERR "} ${t.padEnd(22)} ${
+      ok ? `count ${r.count ?? "?"}` : JSON.stringify(r.body)
     }`,
   );
 }
