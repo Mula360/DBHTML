@@ -11,6 +11,7 @@ import {
   runPittaNudge,
   runYearendReport,
 } from "./tasks/compliance";
+import { runEventReminders, runRecurringStatutory } from "./tasks/events";
 import type { ComplianceConfigRow } from "@/lib/database.types";
 
 type DB = SupabaseClient<Database>;
@@ -68,6 +69,8 @@ export async function runDailyDispatcher(
     runSocietyMemberStatusRecompute(db, today),
   );
   await step("statutory_reminders", () => runStatutoryReminders(db, today));
+  await step("event_reminders", () => runEventReminders(db, today));
+  await step("recurring_statutory", () => runRecurringStatutory(db, today));
 
   // ---- MONDAY -----------------------------------------------------------
   if (parts.weekday === 1) {
