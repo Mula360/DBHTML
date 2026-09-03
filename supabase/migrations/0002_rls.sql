@@ -174,5 +174,10 @@ create policy notifications_own on notifications for select to authenticated
   using (member_id = auth_member_id());
 create policy notifications_update_own on notifications for update to authenticated
   using (member_id = auth_member_id()) with check (member_id = auth_member_id());
+-- Notifications are only ever written by server-side app logic (assignment
+-- alerts, status changes). Any authenticated member may create them; they are
+-- not user-authored content.
+create policy notifications_insert on notifications for insert to authenticated
+  with check (true);
 
 create policy digest_log_read on digest_log for select to authenticated using (is_officer());

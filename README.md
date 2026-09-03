@@ -18,15 +18,17 @@ for visual reference — it is not wired into the app.
 
 ## Build status
 
-Phase 0 (scaffold) and Phase 1 (schema, auth, RLS, seed, app shell) are in.
-Modules 2–12 are scaffolded routes behind the sidebar and ship in later phases —
-see `.claude/plans/` in the working tree or the phase table below.
+Phases 0–2 are in: scaffold, schema + auth + RLS + seed + shell, and the full
+Action Items module with the daily cron dispatcher (action-item reminders,
+walk-tomorrow reminders, society-member status recompute, statutory reminders,
+Monday + 1st-of-month digests). Modules 3–12 are scaffolded routes behind the
+sidebar and ship in later phases — see the phase table below.
 
 | Phase | Scope | State |
 |-------|-------|-------|
 | 0 | Scaffold, lib helpers, CI-ready build | ✅ |
 | 1 | Schema + RLS + magic-link auth + seed + shell/dashboard | ✅ |
-| 2 | Action Items + cron dispatcher | dispatcher skeleton in place |
+| 2 | Action Items (list/filter/create/detail/comments/status) + full cron dispatcher | ✅ |
 | 3 | Meetings + MoM + quorum | stub route |
 | 4 | Compliance tracker | calculators in `lib/compliance.ts`, stub UI |
 | 5–11 | Walks, Events, Pitta, Portfolios, Membership, Reports, Docs+Claims | stub routes |

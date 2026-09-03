@@ -1,6 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
 import type { istParts } from "@/lib/dates";
+import { runActionItemReminders } from "./tasks/actionItems";
+import { runWalkReminders } from "./tasks/walks";
+import { runSocietyMemberStatusRecompute } from "./tasks/societyMembers";
+import { runStatutoryReminders } from "./tasks/statutory";
+import { runWeeklyDigest, runMonthlyDigest } from "./tasks/digests";
 
 type DB = SupabaseClient<Database>;
 type IstParts = ReturnType<typeof istParts>;
@@ -8,12 +13,13 @@ type IstParts = ReturnType<typeof istParts>;
 export interface DispatcherSummary {
   ran: string[];
   counts: Record<string, number>;
+  errors: Record<string, string>;
 }
 
 /**
- * Branches on the IST date and runs the applicable scheduled tasks.
- * Task bodies are filled in as their modules ship (Phase 2+). Each task is
- * defensive: it must not throw if its module's data does not exist yet.
+ * Branches on the IST date and runs the applicable scheduled tasks. Each task
+ * is isolated: a failure is recorded and the rest still run. All thresholds
+ * come from `compliance_config` — nothing is hardcoded here.
  */
 export async function runDailyDispatcher(
   db: DB,
@@ -21,9 +27,22 @@ export async function runDailyDispatcher(
 ): Promise<DispatcherSummary> {
   const ran: string[] = [];
   const counts: Record<string, number> = {};
+  const errors: Record<string, string> = {};
+  const today = parts.iso;
 
-  // Load the current term's compliance config once; every threshold is read
-  // from here, never hardcoded.
+  const step = async (
+    name: string,
+    fn: () => Promise<Record<string, number>>,
+  ) => {
+    try {
+      Object.assign(counts, await fn());
+      ran.push(name);
+    } catch (err) {
+      errors[name] = (err as Error).message;
+      console.error(`[cron] ${name} failed:`, err);
+    }
+  };
+
   const { data: config } = await db
     .from("compliance_config")
     .select("*, terms!inner(is_current)")
@@ -31,38 +50,36 @@ export async function runDailyDispatcher(
     .maybeSingle();
 
   // ---- EVERY DAY ----------------------------------------------------------
-  // TODO(P2): due-in-3-days reminders, newly-overdue flags + emails,
-  //           7+ days overdue escalation list, walk-tomorrow reminders,
-  //           society_members status recompute, statutory 14-day reminders.
-  ran.push("daily");
+  await step("action_item_reminders", () => runActionItemReminders(db, today));
+  await step("walk_reminders", () => runWalkReminders(db, today));
+  await step("society_member_status", () =>
+    runSocietyMemberStatusRecompute(db, today),
+  );
+  await step("statutory_reminders", () => runStatutoryReminders(db, today));
 
   // ---- MONDAY -----------------------------------------------------------
   if (parts.weekday === 1) {
-    // TODO(P2): per-member weekly digest.
-    ran.push("weekly-digest");
+    await step("weekly_digest", () => runWeeklyDigest(db, today));
   }
 
   // ---- 1st OF MONTH ---------------------------------------------------
   if (parts.day === 1) {
-    // TODO(P2): EC-wide monthly digest + renewals-due list.
-    ran.push("monthly-digest");
+    await step("monthly_digest", () => runMonthlyDigest(db, today));
   }
 
-  // ---- MID-YEAR PACE ALERT -------------------------------------------
+  // ---- MID-YEAR PACE ALERT (Phase 4) -------------------------------
   if (config && parts.day === 1 && parts.month === config.midyear_alert_month) {
-    // TODO(P4): pace alerts for members behind on obligations.
-    ran.push("midyear-alert");
+    ran.push("midyear_alert:pending-P4");
   }
 
-  // ---- YEAR-END COMPLIANCE REPORT ----------------------------------
+  // ---- YEAR-END COMPLIANCE REPORT (Phase 4) ----------------------
   if (
     config &&
     parts.month === config.yearend_report_month &&
     parts.day === config.yearend_report_day
   ) {
-    // TODO(P4): generate year-end compliance report + email officers.
-    ran.push("yearend-report");
+    ran.push("yearend_report:pending-P4");
   }
 
-  return { ran, counts };
+  return { ran, counts, errors };
 }

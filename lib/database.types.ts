@@ -139,6 +139,43 @@ export type NotificationRow = {
   created_at: Timestamptz;
 }
 
+export type ActionCommentRow = {
+  id: Uuid;
+  action_item_id: Uuid;
+  member_id: Uuid;
+  comment: string;
+  created_at: Timestamptz;
+}
+
+export type StatutoryItemRow = {
+  id: Uuid;
+  title: string;
+  authority: string | null;
+  due_date: DateStr | null;
+  status: "Pending" | "InProgress" | "Done";
+  document_url: string | null;
+  term_id: Uuid | null;
+  recurring_yearly: boolean;
+}
+
+export type SocietyMemberRow = {
+  id: Uuid;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  city: string | null;
+  membership_type: string | null;
+  membership_number: string | null;
+  joined_date: DateStr | null;
+  last_renewal_date: DateStr | null;
+  renewal_due_date: DateStr | null;
+  status: "Active" | "Due" | "Lapsed" | "Life";
+  notes: string | null;
+  is_deleted: boolean;
+  created_at: Timestamptz;
+  updated_at: Timestamptz;
+}
+
 // Generic table shape for tables not yet explicitly modelled.
 type Loose = { id: Uuid; [key: string]: unknown };
 
@@ -159,7 +196,7 @@ export interface Database {
       compliance_config: Table<ComplianceConfigRow>;
       compliance_config_audit: Table<Loose>;
       action_items: Table<ActionItemRow>;
-      action_comments: Table<Loose>;
+      action_comments: Table<ActionCommentRow>;
       meetings: Table<MeetingRow>;
       meeting_attendance: Table<Loose>;
       moms: Table<Loose>;
@@ -174,9 +211,9 @@ export interface Database {
       awc_sites: Table<Loose>;
       pitta_issues: Table<Loose>;
       pitta_contributions: Table<Loose>;
-      society_members: Table<Loose>;
+      society_members: Table<SocietyMemberRow>;
       expense_claims: Table<Loose>;
-      statutory_items: Table<Loose>;
+      statutory_items: Table<StatutoryItemRow>;
       documents: Table<Loose>;
       notifications: Table<NotificationRow>;
       digest_log: Table<Loose>;
