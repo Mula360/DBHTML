@@ -2,19 +2,18 @@ import Link from "next/link";
 import { getSessionMember } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { istToday, addDays } from "@/lib/dates";
-import { TONE_CLASS } from "@/lib/actionItems";
-import { prettyPortfolio } from "@/lib/constants";
+import { PageHead, SectionLabel, PortfolioTag, Pill } from "@/components/ui";
 import type { ActionItemRow } from "@/lib/database.types";
 
 export const dynamic = "force-dynamic";
 
 export default async function MyTasksPage() {
   const { member } = await getSessionMember();
-  const supabase = createClient();
+  const db = createClient();
   const today = istToday();
   const weekEnd = addDays(today, 7);
 
-  const { data: rows } = await supabase
+  const { data: rows } = await db
     .from("action_items")
     .select("*")
     .eq("assigned_to", member.id)
@@ -22,65 +21,95 @@ export default async function MyTasksPage() {
     .order("due_date", { ascending: true, nullsFirst: false });
   const items = (rows ?? []) as ActionItemRow[];
 
-  const groups: { label: string; tone: string; list: ActionItemRow[] }[] = [
+  const groups = [
     {
       label: "Overdue",
-      tone: "rag-red",
       list: items.filter((i) => i.due_date && i.due_date < today),
+      tone: "red" as const,
     },
     {
       label: "Due this week",
-      tone: "rag-amber",
       list: items.filter(
         (i) => i.due_date && i.due_date >= today && i.due_date <= weekEnd,
       ),
+      tone: "amber" as const,
     },
     {
       label: "Later / no date",
-      tone: "",
       list: items.filter((i) => !i.due_date || i.due_date > weekEnd),
+      tone: "" as const,
     },
   ];
 
   return (
-    <div style={{ display: "grid", gap: 16, maxWidth: 720 }}>
-      <h1>My Tasks</h1>
-      <p style={{ color: "#667" }}>
-        {items.length} open item{items.length === 1 ? "" : "s"} assigned to you.
-      </p>
+    <div>
+      <PageHead
+        title="My Tasks"
+        sub={`${items.length} open item${items.length === 1 ? "" : "s"} assigned to you`}
+      />
+
+      {items.length === 0 && (
+        <div className="card muted" style={{ marginTop: 14 }}>
+          Nothing open assigned to you.
+        </div>
+      )}
+
       {groups.map((g) =>
         g.list.length === 0 ? null : (
-          <div key={g.label} className="card">
-            <div className={`badge ${g.tone}`} style={{ marginBottom: 8 }}>
+          <div key={g.label}>
+            <SectionLabel>
               {g.label} · {g.list.length}
+            </SectionLabel>
+            <div className="card flush">
+              <table className="tbl">
+                <thead>
+                  <tr>
+                    <th>Item</th>
+                    <th>Portfolio</th>
+                    <th>Due</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {g.list.map((i) => (
+                    <tr key={i.id}>
+                      <td>
+                        <Link href={`/action-items/${i.id}`}>{i.title}</Link>
+                      </td>
+                      <td>
+                        <PortfolioTag tag={i.portfolio_tag} />
+                      </td>
+                      <td
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 600,
+                          color:
+                            g.tone === "red"
+                              ? "var(--r-fg)"
+                              : g.tone === "amber"
+                                ? "var(--a-fg)"
+                                : "var(--ink-soft)",
+                        }}
+                      >
+                        {i.due_date
+                          ? new Date(`${i.due_date}T00:00:00Z`).toLocaleDateString(
+                              "en-GB",
+                              { day: "numeric", month: "short" },
+                            )
+                          : "no date"}
+                      </td>
+                      <td>
+                        <Pill tone={g.tone}>
+                          {i.status === "InProgress" ? "In progress" : i.status}
+                        </Pill>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-            {g.list.map((i) => (
-              <div
-                key={i.id}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  padding: "8px 0",
-                  borderTop: "1px solid var(--line)",
-                  fontSize: 14,
-                }}
-              >
-                <Link href={`/action-items/${i.id}`}>{i.title}</Link>
-                <span style={{ color: "#667" }}>
-                  {i.portfolio_tag ? `${prettyPortfolio(i.portfolio_tag)} · ` : ""}
-                  <span className={`badge ${TONE_CLASS[i.due_date && i.due_date < today ? "overdue" : "later"]}`}>
-                    {i.due_date ?? "no date"}
-                  </span>
-                </span>
-              </div>
-            ))}
           </div>
         ),
-      )}
-      {items.length === 0 && (
-        <p className="card" style={{ color: "#889" }}>
-          Nothing open. 🎉
-        </p>
       )}
     </div>
   );

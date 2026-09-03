@@ -1,5 +1,9 @@
 import { getSessionMember } from "@/lib/auth";
-import { Sidebar } from "./Sidebar";
+import { createClient } from "@/lib/supabase/server";
+import { istToday } from "@/lib/dates";
+import { Shell } from "./Shell";
+
+export const dynamic = "force-dynamic";
 
 export default async function AppLayout({
   children,
@@ -7,40 +11,59 @@ export default async function AppLayout({
   children: React.ReactNode;
 }) {
   const { member, position } = await getSessionMember();
-  const initials = member.name
-    .split(" ")
-    .map((p) => p[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
+  const db = createClient();
+  const today = istToday();
+
+  const [unread, myOpen, upcomingMeetings, upcomingWalks, pittaPlanning, pendingClaims] =
+    await Promise.all([
+      db
+        .from("notifications")
+        .select("id", { count: "exact", head: true })
+        .is("read_at", null)
+        .then((r) => r.count ?? 0),
+      db
+        .from("action_items")
+        .select("id", { count: "exact", head: true })
+        .eq("assigned_to", member.id)
+        .in("status", ["Open", "InProgress"])
+        .then((r) => r.count ?? 0),
+      db
+        .from("meetings")
+        .select("id", { count: "exact", head: true })
+        .gte("date", today)
+        .then((r) => r.count ?? 0),
+      db
+        .from("walks")
+        .select("id", { count: "exact", head: true })
+        .gte("date", today)
+        .then((r) => r.count ?? 0),
+      db
+        .from("pitta_issues")
+        .select("id", { count: "exact", head: true })
+        .neq("status", "Published")
+        .then((r) => r.count ?? 0),
+      db
+        .from("expense_claims")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "Pending")
+        .then((r) => r.count ?? 0),
+    ]);
 
   return (
-    <div className="app-shell">
-      <Sidebar position={position} />
-      <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
-        <header className="topbar">
-          <span className="wordmark">Deccan Birders</span>
-          <span className="divider" />
-          <span className="position-chip">{position ?? "No position"}</span>
-          <span style={{ flex: 1 }} />
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div className="who">
-              <div className="name">{member.name}</div>
-              {position && <div className="role">{position}</div>}
-            </div>
-            <span className="avatar">{initials}</span>
-            <form action="/logout" method="post">
-              <button
-                className="btn secondary"
-                style={{ padding: "6px 12px", minHeight: 0, fontSize: 12 }}
-              >
-                Sign out
-              </button>
-            </form>
-          </div>
-        </header>
-        <main className="content">{children}</main>
-      </div>
-    </div>
+    <Shell
+      position={position}
+      name={member.name}
+      role={position ?? "EC member"}
+      unread={unread}
+      counts={{
+        actions: myOpen,
+        meetings: upcomingMeetings,
+        walks: upcomingWalks,
+        pitta: pittaPlanning,
+        claims: pendingClaims,
+      }}
+    >
+      {children}
+    </Shell>
   );
 }

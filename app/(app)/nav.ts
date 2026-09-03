@@ -3,13 +3,10 @@ import type { PositionName } from "@/lib/database.types";
 export interface NavItem {
   label: string;
   href: string;
-  /** If set, only these positions see the link. */
+  icon: string;
+  /** count key resolved server-side, e.g. "actions" | "meetings" | "pitta" */
+  countKey?: "actions" | "meetings" | "pitta" | "walks" | "claims";
   positions?: PositionName[];
-}
-
-export interface NavSection {
-  title: string;
-  items: NavItem[];
 }
 
 export const PORTFOLIOS = [
@@ -36,54 +33,32 @@ const REGISTER_MANAGERS: PositionName[] = [
 ];
 const STATUTORY: PositionName[] = ["Secretary", "President", "Treasurer"];
 
-export const NAV: NavSection[] = [
+/** One list, used for both the icon rail and the switcher dropdown. */
+export const NAV: NavItem[] = [
+  { label: "Dashboard", href: "/dashboard", icon: "⌂" },
+  { label: "My Tasks", href: "/my-tasks", icon: "☰" },
+  { label: "Meetings & MoM", href: "/meetings", icon: "▤", countKey: "meetings" },
+  { label: "Action Items", href: "/action-items", icon: "✓", countKey: "actions" },
+  { label: "Walks & Field Trips", href: "/walks", icon: "➤", countKey: "walks" },
+  { label: "Annual Events", href: "/events", icon: "★" },
+  { label: "Pitta Newsletter", href: "/pitta", icon: "✎", countKey: "pitta" },
+  { label: "Baseline Obligations", href: "/compliance", icon: "◎" },
+  { label: "Portfolios", href: "/portfolios", icon: "❖" },
+  { label: "Statutory Tracker", href: "/statutory", icon: "§", positions: STATUTORY },
+  { label: "Expense Claims", href: "/finances", icon: "₹", countKey: "claims" },
   {
-    title: "Overview",
-    items: [
-      { label: "Dashboard", href: "/dashboard" },
-      { label: "My Tasks", href: "/my-tasks" },
-    ],
+    label: "Membership Register",
+    href: "/membership",
+    icon: "⊞",
+    positions: REGISTER_MANAGERS,
   },
-  {
-    title: "Club Records",
-    items: [
-      { label: "Meetings & MoM", href: "/meetings" },
-      { label: "Action Items", href: "/action-items" },
-      { label: "Walks & Field Trips", href: "/walks" },
-      { label: "Annual Events", href: "/events" },
-      { label: "Pitta Newsletter", href: "/pitta" },
-      { label: "Expense Claims", href: "/finances" },
-      {
-        label: "Membership Register",
-        href: "/membership",
-        positions: REGISTER_MANAGERS,
-      },
-      { label: "Documents", href: "/documents" },
-    ],
-  },
-  {
-    title: "Portfolios",
-    items: PORTFOLIOS.map((p) => ({
-      label: p.replace(/([a-z])([A-Z])/g, "$1 $2"),
-      href: `/portfolios/${p}`,
-    })),
-  },
-  {
-    title: "Compliance",
-    items: [{ label: "Baseline Obligations", href: "/compliance" }],
-  },
-  {
-    title: "Statutory",
-    items: [
-      { label: "Statutory Tracker", href: "/statutory", positions: STATUTORY },
-    ],
-  },
-  {
-    title: "Reports",
-    items: [{ label: "Reports", href: "/reports" }],
-  },
-  {
-    title: "Settings",
-    items: [{ label: "Settings", href: "/settings" }],
-  },
+  { label: "Documents", href: "/documents", icon: "▢" },
+  { label: "Reports", href: "/reports", icon: "◧" },
+  { label: "Settings", href: "/settings", icon: "⚙" },
 ];
+
+export function visibleNav(position: PositionName | null): NavItem[] {
+  return NAV.filter(
+    (it) => !it.positions || (position && it.positions.includes(position)),
+  );
+}

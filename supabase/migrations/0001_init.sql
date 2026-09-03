@@ -47,8 +47,8 @@ create table portfolio_assignments (
 create table compliance_config (
   id uuid primary key default gen_random_uuid(),
   term_id uuid references terms unique not null,
-  year_start_month int default 9,
-  year_end_month int default 8,
+  year_start_month int default 1,
+  year_end_month int default 12,
   min_field_trips int default 2,
   min_meetings int default 8,
   min_events int default 2,

@@ -25,7 +25,10 @@ export function getComplianceYear(
   const endMonthFirst = `${endYear}-${String(config.year_end_month).padStart(2, "0")}-01`;
   const end = addDays(nextMonthFirst(endMonthFirst), -1);
   return {
-    label: `${startYear}-${String((endYear % 100)).padStart(2, "0")}`,
+    label:
+      startYear === endYear
+        ? `${startYear}`
+        : `${startYear}-${String(endYear % 100).padStart(2, "0")}`,
     start,
     end,
   };

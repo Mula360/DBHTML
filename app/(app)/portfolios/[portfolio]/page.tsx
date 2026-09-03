@@ -6,6 +6,7 @@ import { getCurrentTerm } from "@/lib/portfolios";
 import { PORTFOLIOS } from "@/app/(app)/nav";
 import { prettyPortfolio } from "@/lib/constants";
 import { istToday } from "@/lib/dates";
+import { PageHead, SectionLabel, PortfolioTag } from "@/components/ui";
 import type {
   MemberRow,
   ActionItemRow,
@@ -83,11 +84,23 @@ export default async function PortfolioPage({
   const today = istToday();
 
   return (
-    <div style={{ display: "grid", gap: 16, maxWidth: 800 }}>
-      <h1>{prettyPortfolio(portfolio)}</h1>
+    <div style={{ maxWidth: 900 }}>
+      <PageHead
+        title={
+          <span className="row" style={{ gap: 10 }}>
+            <PortfolioTag tag={portfolio} />
+          </span>
+        }
+        sub={
+          <>
+            {prettyPortfolio(portfolio)} portfolio · {term?.label ?? "no term"} ·{" "}
+            <Link href="/portfolios">all portfolios</Link>
+          </>
+        }
+      />
 
-      <section className="card">
-        <h3 style={{ marginBottom: 8 }}>Assignment ({term?.label ?? "no term"})</h3>
+      <SectionLabel>Assignment</SectionLabel>
+      <div className="card">
         <AssignmentEditor
           portfolio={portfolio}
           members={memberList}
@@ -95,10 +108,10 @@ export default async function PortfolioPage({
           support={a?.support_member_ids ?? []}
           canEdit={canEditAssignment}
         />
-      </section>
+      </div>
 
-      <section className="card">
-        <h3 style={{ marginBottom: 8 }}>Status updates</h3>
+      <SectionLabel>Status updates</SectionLabel>
+      <div className="card">
         <UpdateLog
           portfolio={portfolio}
           updates={((updates ?? []) as PortfolioUpdateRow[]).map((u) => ({
@@ -107,9 +120,9 @@ export default async function PortfolioPage({
             at: u.created_at,
           }))}
         />
-      </section>
+      </div>
 
-      <section className="card">
+      <div className="card">
         <h3 style={{ marginBottom: 8 }}>
           Open action items ({(actionItems ?? []).length})
         </h3>
@@ -128,10 +141,10 @@ export default async function PortfolioPage({
         {(actionItems ?? []).length === 0 && (
           <p style={{ color: "#889", fontSize: 14 }}>None.</p>
         )}
-      </section>
+      </div>
 
       {(events ?? []).length > 0 && (
-        <section className="card">
+        <div className="card">
           <h3 style={{ marginBottom: 8 }}>Linked events</h3>
           {((events ?? []) as EventRow[]).map((e) => (
             <div key={e.id} style={{ fontSize: 14, padding: "4px 0" }}>
@@ -139,18 +152,18 @@ export default async function PortfolioPage({
               {e.status}
             </div>
           ))}
-        </section>
+        </div>
       )}
 
       {portfolio === "Pitta" && (
-        <section className="card">
+        <div className="card">
           Pitta contributions and issues are managed in the{" "}
           <Link href="/pitta">Pitta module</Link>.
-        </section>
+        </div>
       )}
 
       {portfolio === "BirdRace" && (
-        <section className="card">
+        <div className="card">
           <h3 style={{ marginBottom: 8 }}>Bird Race planning checklist</h3>
           <ul style={{ paddingLeft: 18, fontSize: 14, color: "#445" }}>
             {BIRDRACE_CHECKLIST.map((c) => (
@@ -161,11 +174,11 @@ export default async function PortfolioPage({
             Track progress with status updates above and action items tagged
             Bird Race.
           </p>
-        </section>
+        </div>
       )}
 
       {portfolio === "HBA" && (
-        <section className="card">
+        <div className="card">
           <h3 style={{ marginBottom: 8 }}>HBA seasons</h3>
           <HbaPanel
             seasons={
@@ -179,11 +192,11 @@ export default async function PortfolioPage({
               ) as HbaSeasonRow[]
             }
           />
-        </section>
+        </div>
       )}
 
       {portfolio === "AWC" && (
-        <section className="card">
+        <div className="card">
           <h3 style={{ marginBottom: 8 }}>AWC sites</h3>
           <AwcPanel
             sites={
@@ -197,7 +210,7 @@ export default async function PortfolioPage({
               ) as AwcSiteRow[]
             }
           />
-        </section>
+        </div>
       )}
     </div>
   );

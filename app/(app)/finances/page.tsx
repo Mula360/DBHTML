@@ -1,11 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { getSessionMember, hasPosition } from "@/lib/auth";
+import { PageHead, SectionLabel } from "@/components/ui";
+import { ClaimForm, ClaimRow } from "./ui";
 import type {
   ExpenseClaimRow,
   MemberRow,
   PositionName,
 } from "@/lib/database.types";
-import { ClaimForm, ClaimRow } from "./ui";
 
 export const dynamic = "force-dynamic";
 
@@ -27,34 +28,61 @@ export default async function FinancesPage() {
 
   const rows = (claims ?? []) as ExpenseClaimRow[];
   const pending = rows.filter((r) => r.status === "Pending");
+  const totals = (s: ExpenseClaimRow["status"]) =>
+    rows.filter((r) => r.status === s).reduce((a, r) => a + Number(r.amount), 0);
 
   return (
-    <div style={{ display: "grid", gap: 16, maxWidth: 720 }}>
-      <h1>Expense Claims</h1>
-      <p style={{ color: "#667" }}>
-        Submit a claim with a Drive receipt link; the Treasurer approves,
-        rejects and settles. The Society&apos;s audited accounts remain the
-        system of record — no ledger here.
-      </p>
+    <div>
+      <PageHead
+        title="Expense Claims"
+        sub="Submit a claim with a Drive receipt link; the Treasurer approves, rejects and settles. The Society's audited accounts remain the system of record — there is no ledger here."
+      />
 
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))",
+          gap: 14,
+          marginTop: 18,
+        }}
+      >
+        {(
+          [
+            ["Pending", totals("Pending"), "var(--a-fg)"],
+            ["Approved", totals("Approved"), "var(--blue)"],
+            ["Settled", totals("Settled"), "var(--g-fg)"],
+            ["Rejected", totals("Rejected"), "var(--r-fg)"],
+          ] as const
+        ).map(([label, amt, color]) => (
+          <div key={label} className="card">
+            <div style={{ fontSize: 11.5, color: "var(--ink-mute)" }}>{label}</div>
+            <div style={{ font: "700 22px var(--font-ui)", color, marginTop: 7 }}>
+              ₹{amt.toLocaleString("en-IN")}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <SectionLabel>Submit a claim</SectionLabel>
       <ClaimForm />
 
       {isTreasurer && pending.length > 0 && (
-        <section className="card rag-amber">
+        <div className="banner amber" style={{ marginTop: 14 }}>
           <b>{pending.length} claim(s) awaiting your action.</b>
-        </section>
+        </div>
       )}
 
-      <div className="card" style={{ padding: 0, overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+      <SectionLabel>All claims · most recent first</SectionLabel>
+      <div className="card flush tbl-scroll">
+        <table className="tbl">
           <thead>
-            <tr style={{ textAlign: "left", color: "#667" }}>
-              <th style={c}>Member</th>
-              <th style={c}>Amount</th>
-              <th style={c}>Description</th>
-              <th style={c}>Receipt</th>
-              <th style={c}>Status</th>
-              {isTreasurer && <th style={c} />}
+            <tr>
+              <th>Member</th>
+              <th>Amount</th>
+              <th>Description</th>
+              <th>Receipt</th>
+              <th>Status</th>
+              {isTreasurer && <th />}
             </tr>
           </thead>
           <tbody>
@@ -75,7 +103,7 @@ export default async function FinancesPage() {
             ))}
             {rows.length === 0 && (
               <tr>
-                <td style={c} colSpan={isTreasurer ? 6 : 5}>
+                <td colSpan={isTreasurer ? 6 : 5} className="muted">
                   No claims yet.
                 </td>
               </tr>
@@ -86,5 +114,3 @@ export default async function FinancesPage() {
     </div>
   );
 }
-
-const c: React.CSSProperties = { padding: "8px 12px" };

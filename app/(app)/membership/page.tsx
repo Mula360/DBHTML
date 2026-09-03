@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { istToday, addDays } from "@/lib/dates";
+import { PageHead } from "@/components/ui";
 import type { SocietyMemberRow } from "@/lib/database.types";
 import { MemberRowControls } from "./ui";
 
@@ -51,29 +52,49 @@ export default async function MembershipPage({
   }
 
   return (
-    <div style={{ display: "grid", gap: 16 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h1>Membership Register</h1>
-        <div style={{ display: "flex", gap: 8 }}>
-          <Link className="btn secondary" href="/membership/export">
-            Export CSV
-          </Link>
-          <Link className="btn" href="/membership/import">
-            Import CSV
-          </Link>
+    <div>
+      <PageHead
+        title="Membership Register"
+        sub="The general membership — who never log in. No payments, emails to them, or self-service (out of scope)."
+        actions={
+          <>
+            <Link className="btn secondary" href="/membership/export">
+              Export CSV
+            </Link>
+            <Link className="btn" href="/membership/import">
+              Import CSV
+            </Link>
+          </>
+        }
+      />
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))",
+          gap: 14,
+          marginTop: 18,
+        }}
+      >
+        {STATUSES.map((s) => (
+          <div key={s} className="card">
+            <div style={{ fontSize: 11.5, color: "var(--ink-mute)" }}>{s}</div>
+            <div style={{ font: "700 22px var(--font-ui)", marginTop: 6 }}>
+              {counts[s] ?? 0}
+            </div>
+          </div>
+        ))}
+        <div className="card">
+          <div style={{ fontSize: 11.5, color: "var(--ink-mute)" }}>
+            Renewals ≤ 30 days
+          </div>
+          <div style={{ font: "700 22px var(--font-ui)", color: "var(--a-fg)", marginTop: 6 }}>
+            {dueSoon}
+          </div>
         </div>
       </div>
 
-      <section className="card" style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-        {STATUSES.map((s) => (
-          <span key={s} className="badge">
-            {s}: {counts[s] ?? 0}
-          </span>
-        ))}
-        <span className="badge rag-amber">Renewals due ≤30d: {dueSoon}</span>
-      </section>
-
-      <form className="card" style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+      <form className="card" style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 16 }}>
         <input name="q" placeholder="Search name / email / number" defaultValue={searchParams.q} />
         <select name="status" defaultValue={searchParams.status ?? ""}>
           <option value="">Any status</option>
@@ -87,49 +108,53 @@ export default async function MembershipPage({
         </button>
       </form>
 
-      <div className="card" style={{ padding: 0, overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+      <div className="card flush tbl-scroll" style={{ marginTop: 16 }}>
+        <table className="tbl">
           <thead>
-            <tr style={{ textAlign: "left", color: "#667" }}>
-              <th style={c}>Name</th>
-              <th style={c}>Contact</th>
-              <th style={c}>Type</th>
-              <th style={c}>Renewal due</th>
-              <th style={c}>Status</th>
-              <th style={c} />
+            <tr>
+              <th>Name</th>
+              <th>Contact</th>
+              <th>Type</th>
+              <th>Renewal due</th>
+              <th>Status</th>
+              <th />
             </tr>
           </thead>
           <tbody>
             {members.map((m) => (
-              <tr key={m.id} style={{ borderTop: "1px solid var(--line)" }}>
-                <td style={c}>{m.name}</td>
-                <td style={c}>
+              <tr key={m.id}>
+                <td style={{ fontWeight: 600 }}>{m.name}</td>
+                <td className="muted" style={{ fontSize: 12 }}>
                   {m.email ?? ""}
                   {m.phone ? ` · ${m.phone}` : ""}
                 </td>
-                <td style={c}>{m.membership_type ?? "—"}</td>
-                <td style={c}>{m.renewal_due_date ?? "—"}</td>
-                <td style={c}>
+                <td className="muted" style={{ fontSize: 12 }}>
+                  {m.membership_type ?? "—"}
+                </td>
+                <td className="muted" style={{ fontSize: 12 }}>
+                  {m.renewal_due_date ?? "—"}
+                </td>
+                <td>
                   <span
-                    className={`badge ${
+                    className={`pill ${
                       m.status === "Lapsed"
-                        ? "rag-red"
+                        ? "red"
                         : m.status === "Due"
-                          ? "rag-amber"
-                          : "rag-green"
+                          ? "amber"
+                          : "green"
                     }`}
                   >
                     {m.status}
                   </span>
                 </td>
-                <td style={c}>
+                <td>
                   <MemberRowControls id={m.id} />
                 </td>
               </tr>
             ))}
             {members.length === 0 && (
               <tr>
-                <td style={c} colSpan={6}>
+                <td colSpan={6} className="muted">
                   No members match.
                 </td>
               </tr>
@@ -137,12 +162,10 @@ export default async function MembershipPage({
           </tbody>
         </table>
       </div>
-      <p style={{ fontSize: 12, color: "#889" }}>
-        Showing up to 1000. General members never log in — no payments, no
-        emails to them, no self-service (out of scope).
+      <p className="faint" style={{ fontSize: 12, marginTop: 10 }}>
+        Showing up to 1000.
       </p>
     </div>
   );
 }
 
-const c: React.CSSProperties = { padding: "8px 12px" };

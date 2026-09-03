@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { getSessionMember, hasPosition, OFFICERS } from "@/lib/auth";
+import { PageHead, SectionLabel } from "@/components/ui";
 import type { DocumentRow } from "@/lib/database.types";
 import { AddDocForm, DocList } from "./ui";
 
@@ -39,33 +40,38 @@ export default async function DocumentsPage() {
   })).filter((g) => g.items.length > 0);
 
   return (
-    <div style={{ display: "grid", gap: 16, maxWidth: 720 }}>
-      <h1>Documents</h1>
-      <p style={{ color: "#667" }}>
-        A register of links — no uploads. Any member can add or edit; only the
-        Secretary or President can delete.
-      </p>
+    <div>
+      <PageHead
+        title="Documents"
+        sub="A register of links — no uploads. Any member can add or edit; only the Secretary or President can delete."
+      />
 
-      <AddDocForm />
+      <div style={{ marginTop: 14 }}>
+        <AddDocForm />
+      </div>
 
       {pinned.length > 0 && (
-        <section className="card">
-          <h3 style={{ marginBottom: 8 }}>Pinned</h3>
-          <DocList docs={pinned} canDelete={canDelete} />
-        </section>
+        <>
+          <SectionLabel>Pinned</SectionLabel>
+          <div className="card">
+            <DocList docs={pinned} canDelete={canDelete} />
+          </div>
+        </>
       )}
 
       {byCategory.map((g) => (
-        <section key={g.cat} className="card">
-          <h3 style={{ marginBottom: 8 }}>{g.cat}</h3>
-          <DocList docs={g.items} canDelete={canDelete} />
-        </section>
+        <div key={g.cat}>
+          <SectionLabel>{g.cat}</SectionLabel>
+          <div className="card">
+            <DocList docs={g.items} canDelete={canDelete} />
+          </div>
+        </div>
       ))}
 
       {docs.length === 0 && (
-        <p className="card" style={{ color: "#889" }}>
+        <div className="card muted" style={{ marginTop: 16 }}>
           No documents yet.
-        </p>
+        </div>
       )}
     </div>
   );
