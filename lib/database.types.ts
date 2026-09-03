@@ -128,6 +128,34 @@ export type WalkRow = {
   created_at: Timestamptz;
 }
 
+export type MeetingAttendanceRow = {
+  id: Uuid;
+  meeting_id: Uuid;
+  member_id: Uuid;
+  status: "present" | "absent" | "apology";
+  attendance_mode: "in_person" | "virtual";
+  marked_at: Timestamptz;
+}
+
+export type MomContent = {
+  decisions: string[];
+  actionItems: { title: string; assignee: string | null; due: string | null }[];
+  announcements: string[];
+  nextSteps: string[];
+  actionItemsCreated?: boolean;
+  noQuorumNotice?: boolean;
+};
+
+export type MomRow = {
+  id: Uuid;
+  meeting_id: Uuid;
+  content_json: MomContent | null;
+  status: "Draft" | "Approved" | "Published";
+  approved_by: Uuid | null;
+  approved_at: Timestamptz | null;
+  emailed_at: Timestamptz | null;
+}
+
 export type NotificationRow = {
   id: Uuid;
   member_id: Uuid;
@@ -198,8 +226,8 @@ export interface Database {
       action_items: Table<ActionItemRow>;
       action_comments: Table<ActionCommentRow>;
       meetings: Table<MeetingRow>;
-      meeting_attendance: Table<Loose>;
-      moms: Table<Loose>;
+      meeting_attendance: Table<MeetingAttendanceRow>;
+      moms: Table<MomRow>;
       walks: Table<WalkRow>;
       walk_coordinators: Table<Loose>;
       walk_attendance: Table<Loose>;
