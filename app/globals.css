@@ -1,0 +1,117 @@
+/* Design tokens — PLACEHOLDERS. Replace with logo-extracted colours later. */
+:root {
+  --brand-primary: #1b6ca8;
+  --brand-deep: #0d3b5c;
+  --brand-accent: #2a9d8f;
+  --brand-warm: #e9c46a;
+  --surface: #f7f9f8;
+  --ink: #1c1c1c;
+  --line: #e3e8ea;
+
+  --rag-green-bg: #e9f7ef;
+  --rag-green-fg: #1b7a45;
+  --rag-amber-bg: #fdf1e4;
+  --rag-amber-fg: #b4661a;
+  --rag-red-bg: #fbeae7;
+  --rag-red-fg: #a32d1f;
+
+  --font-head: Georgia, "Times New Roman", serif;
+  --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  --sidebar-w: 248px;
+  --topbar-h: 56px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-head);
+  color: var(--brand-deep);
+  font-weight: 700;
+}
+
+a {
+  color: var(--brand-primary);
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+input,
+textarea,
+select {
+  font: inherit;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  width: 100%;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 18px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: 9px;
+  border: 1px solid var(--brand-primary);
+  background: var(--brand-primary);
+  color: #fff;
+  font-weight: 600;
+  width: auto;
+}
+
+.btn.secondary {
+  background: #fff;
+  color: var(--brand-primary);
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #eef5fb;
+  color: var(--brand-deep);
+}
+
+.rag-green {
+  background: var(--rag-green-bg);
+  color: var(--rag-green-fg);
+}
+.rag-amber {
+  background: var(--rag-amber-bg);
+  color: var(--rag-amber-fg);
+}
+.rag-red {
+  background: var(--rag-red-bg);
+  color: var(--rag-red-fg);
+}

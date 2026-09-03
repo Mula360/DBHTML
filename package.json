@@ -1,0 +1,38 @@
+{
+  "name": "deccan-birders-ec",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "db:reset": "supabase db reset",
+    "db:types": "supabase gen types typescript --local > lib/database.types.ts",
+    "seed": "tsx scripts/seed.ts",
+    "cron:local": "node scripts/trigger-cron.mjs"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.12.5",
+    "@supabase/supabase-js": "^2.109.0",
+    "next": "14.2.15",
+    "react": "^18",
+    "react-dom": "^18",
+    "resend": "^4.8.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@vitejs/plugin-react": "^6.1.1",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.15",
+    "supabase": "^2.116.0",
+    "tsx": "^4.23.13",
+    "typescript": "^5",
+    "vitest": "^2.1.9"
+  }
+}
