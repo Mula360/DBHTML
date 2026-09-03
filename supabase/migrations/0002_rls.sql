@@ -102,8 +102,9 @@ create policy walks_delete on walks for delete to authenticated
   using (created_by = auth_member_id() or is_officer());
 create policy portfolio_updates_delete on portfolio_updates for delete to authenticated
   using (created_by = auth_member_id() or is_officer());
+-- documents: DELETE is officer-only (Prompt 11), not the creator.
 create policy documents_delete on documents for delete to authenticated
-  using (added_by = auth_member_id() or is_officer());
+  using (is_officer());
 -- Tables without a creator column: officer only.
 create policy moms_delete on moms for delete to authenticated using (is_officer());
 create policy events_delete on events for delete to authenticated using (is_officer());
