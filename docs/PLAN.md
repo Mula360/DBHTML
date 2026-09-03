@@ -97,6 +97,14 @@ plan; it does not restate every prompt verbatim.
 - Member names/emails for the seed are not yet provided → seed uses placeholder names +
   `member1@example.com …`, overridable via a `scripts/seed-data.json` file the user edits.
 
+## STATUS: all 12 phases complete (2026-09-03)
+
+Built, committed, and pushed to `Mula360/DBHTML` main (through `6891c65`).
+Live Supabase project `wmpuxjlfqujvfsehqjnt` created, migrated (0001–0004),
+seeded, and verified. `build` / `lint` / `typecheck` / 22 unit tests / 42
+live-DB e2e assertions / full cron dispatcher run — all green, zero errors.
+One RLS bug found and fixed by the e2e suite (documents delete → officer-only).
+
 ## Notes on execution
 
 - Because there is no live Supabase, phases 2–12 are built against the schema/types (generated
