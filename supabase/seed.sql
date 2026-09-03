@@ -33,11 +33,11 @@ declare
                         'EC1','EC2','EC3','EC4','EC5'];
   -- EDIT THESE: {name, email}
   names text[] := array[
-    'Member One','Member Two','Member Three','Member Four','Member Five',
+    'Member One','Member Two','Member Three','Srikanth Bhamidipati','Member Five',
     'Member Six','Member Seven','Member Eight','Member Nine','Member Ten'];
   emails text[] := array[
     'member1@example.com','member2@example.com','member3@example.com',
-    'member4@example.com','member5@example.com','member6@example.com',
+    'srikanth@deccanbirders.org','member5@example.com','member6@example.com',
     'member7@example.com','member8@example.com','member9@example.com',
     'member10@example.com'];
   i int;

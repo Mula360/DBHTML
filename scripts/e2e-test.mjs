@@ -112,7 +112,7 @@ async function main() {
   const emailFor = {
     President: "member1@example.com",
     "VP-1": "member2@example.com",
-    Secretary: "member4@example.com",
+    Secretary: "srikanth@deccanbirders.org",
     Treasurer: "member5@example.com",
     EC5: "member10@example.com",
   };

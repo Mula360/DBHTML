@@ -80,7 +80,7 @@ function asUser(jwt) {
     });
 }
 
-const secretaryJwt = await signInAs("member4@example.com"); // Secretary
+const secretaryJwt = await signInAs("srikanth@deccanbirders.org"); // Secretary
 const ec5Jwt = await signInAs("member10@example.com"); // plain member
 
 console.log("Secretary session:", secretaryJwt ? "ok" : "FAILED");
@@ -115,7 +115,7 @@ await fetch(`${URL_}/rest/v1/society_members`, {
   body: JSON.stringify({ name: "General Person", status: "Active" }),
 });
 const secMember = await fetch(
-  `${URL_}/rest/v1/members?email=eq.member4@example.com&select=id`,
+  `${URL_}/rest/v1/members?email=eq.srikanth@deccanbirders.org&select=id`,
   { headers: { apikey: svc, authorization: `Bearer ${svc}` } },
 ).then((r) => r.json());
 await fetch(`${URL_}/rest/v1/expense_claims`, {
