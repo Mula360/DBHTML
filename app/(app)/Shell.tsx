@@ -29,14 +29,21 @@ export function Shell({
   const pathname = usePathname();
   const nav = visibleNav(position);
   const [open, setOpen] = useState(false);
+  const [meOpen, setMeOpen] = useState(false);
 
-  useEffect(() => setOpen(false), [pathname]);
   useEffect(() => {
-    if (!open) return;
-    const close = () => setOpen(false);
+    setOpen(false);
+    setMeOpen(false);
+  }, [pathname]);
+  useEffect(() => {
+    if (!open && !meOpen) return;
+    const close = () => {
+      setOpen(false);
+      setMeOpen(false);
+    };
     window.addEventListener("click", close);
     return () => window.removeEventListener("click", close);
-  }, [open]);
+  }, [open, meOpen]);
 
   const current =
     nav.find((n) => isActive(pathname, n.href))?.label ?? "Deccan Birders EC";
@@ -102,14 +109,71 @@ export function Shell({
             ✉{unread > 0 && <span className="dot">{unread > 99 ? "99+" : unread}</span>}
           </Link>
 
-          <Link href="/settings" className="whoami" title="Your profile">
-            <Avatar name={name} size={32} />
-            <span>
-              <span className="nm">{name}</span>
-              <br />
-              <span className="rl">{role}</span>
-            </span>
-          </Link>
+          <div className="whoami" style={{ position: "relative" }}>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setMeOpen((v) => !v);
+              }}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 9,
+                background: "none",
+                border: "none",
+                padding: 0,
+              }}
+              title="Account"
+            >
+              <Avatar name={name} size={32} />
+              <span style={{ textAlign: "left" }}>
+                <span className="nm">{name}</span>
+                <br />
+                <span className="rl">{role}</span>
+              </span>
+              <span style={{ color: "var(--ink-faint)", fontSize: 11 }}>
+                {meOpen ? "▴" : "▾"}
+              </span>
+            </button>
+            {meOpen && (
+              <div
+                className="switcher-menu"
+                style={{ left: "auto", right: 0, width: 180 }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Link href="/settings">
+                  <span className="ico">⚙</span>Profile &amp; settings
+                </Link>
+                <Link href="/notifications">
+                  <span className="ico">✉</span>Notifications
+                </Link>
+                <form action="/logout" method="post">
+                  <button
+                    type="submit"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      width: "100%",
+                      padding: 9,
+                      borderRadius: 7,
+                      border: "none",
+                      background: "none",
+                      font: "inherit",
+                      fontSize: 12.5,
+                      color: "var(--r-fg)",
+                      minHeight: 38,
+                    }}
+                  >
+                    <span className="ico" style={{ color: "var(--r-fg)" }}>
+                      ⏻
+                    </span>
+                    Sign out
+                  </button>
+                </form>
+              </div>
+            )}
+          </div>
         </header>
 
         <main className="app-content">{children}</main>

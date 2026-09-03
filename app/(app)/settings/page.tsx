@@ -73,6 +73,15 @@ export default async function SettingsPage() {
           </div>
         </>
       )}
+
+      <SectionLabel>Session</SectionLabel>
+      <div className="card">
+        <form action="/logout" method="post">
+          <button className="btn secondary" type="submit">
+            Sign out
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
