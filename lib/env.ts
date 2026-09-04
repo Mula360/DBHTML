@@ -36,7 +36,8 @@ export const env = {
   googleImpersonateSubject: () => first("GOOGLE_IMPERSONATE_SUBJECT"),
   googleMeetSpaceCode: () => first("GOOGLE_MEET_SPACE_CODE"),
   googleNotesFolderId: () => first("GOOGLE_NOTES_FOLDER_ID"),
-  // Password sign-in is for test accounts only; off unless explicitly enabled.
+  // Password sign-in (test accounts). On by default; set ALLOW_PASSWORD_LOGIN
+  // to "false" to force magic-link-only once real email delivery is set up.
   allowPasswordLogin: () =>
-    (process.env.ALLOW_PASSWORD_LOGIN || "").toLowerCase() === "true",
+    (process.env.ALLOW_PASSWORD_LOGIN || "").toLowerCase() !== "false",
 };

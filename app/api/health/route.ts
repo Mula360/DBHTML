@@ -67,7 +67,7 @@ export async function GET() {
       meetSpaceCode: Boolean(process.env.GOOGLE_MEET_SPACE_CODE),
     },
     passwordLoginEnabled:
-      (process.env.ALLOW_PASSWORD_LOGIN || "").toLowerCase() === "true",
+      (process.env.ALLOW_PASSWORD_LOGIN || "").toLowerCase() !== "false",
     dbError,
     hint:
       dbError !== null
