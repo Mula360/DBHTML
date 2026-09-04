@@ -9,17 +9,21 @@ export const dynamic = "force-dynamic";
 
 const STATUSES = ["Active", "Due", "Lapsed", "Life"];
 
+const PAGE_SIZE = 50;
+
 export default async function MembershipPage({
   searchParams,
 }: {
-  searchParams: { q?: string; status?: string; type?: string };
+  searchParams: { q?: string; status?: string; type?: string; page?: string };
 }) {
   const db = createClient();
   const today = istToday();
+  const page = Math.max(1, Number(searchParams.page) || 1);
+  const from = (page - 1) * PAGE_SIZE;
 
   let query = db
     .from("society_members")
-    .select("*")
+    .select("*", { count: "exact" })
     .eq("is_deleted", false);
   if (searchParams.q)
     query = query.or(
@@ -32,24 +36,44 @@ export default async function MembershipPage({
     );
   if (searchParams.type) query = query.eq("membership_type", searchParams.type);
 
-  const { data: rows } = await query.order("name").limit(1000);
+  const { data: rows, count: total } = await query
+    .order("name")
+    .range(from, from + PAGE_SIZE - 1);
   const members = (rows ?? []) as SocietyMemberRow[];
+  const totalCount = total ?? members.length;
+  const pages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
-  const { data: all } = await db
-    .from("society_members")
-    .select("status, renewal_due_date")
-    .eq("is_deleted", false);
-  const counts: Record<string, number> = {};
-  let dueSoon = 0;
-  for (const m of all ?? []) {
-    counts[m.status] = (counts[m.status] ?? 0) + 1;
-    if (
-      (m.status === "Due" || m.status === "Lapsed") &&
-      m.renewal_due_date &&
-      m.renewal_due_date <= addDays(today, 30)
-    )
-      dueSoon++;
-  }
+  // Status tiles + "due soon" — SQL-side counts, never a full-table fetch.
+  const base = () =>
+    db
+      .from("society_members")
+      .select("id", { count: "exact", head: true })
+      .eq("is_deleted", false);
+  const [active, due, lapsed, life, dueSoonRes] = await Promise.all([
+    base().eq("status", "Active"),
+    base().eq("status", "Due"),
+    base().eq("status", "Lapsed"),
+    base().eq("status", "Life"),
+    base()
+      .in("status", ["Due", "Lapsed"])
+      .not("renewal_due_date", "is", null)
+      .lte("renewal_due_date", addDays(today, 30)),
+  ]);
+  const counts: Record<string, number> = {
+    Active: active.count ?? 0,
+    Due: due.count ?? 0,
+    Lapsed: lapsed.count ?? 0,
+    Life: life.count ?? 0,
+  };
+  const dueSoon = dueSoonRes.count ?? 0;
+  const qs = (p: number) => {
+    const u = new URLSearchParams();
+    if (searchParams.q) u.set("q", searchParams.q);
+    if (searchParams.status) u.set("status", searchParams.status);
+    if (searchParams.type) u.set("type", searchParams.type);
+    u.set("page", String(p));
+    return `?${u}`;
+  };
 
   return (
     <div>
@@ -162,9 +186,29 @@ export default async function MembershipPage({
           </tbody>
         </table>
       </div>
-      <p className="faint" style={{ fontSize: 12, marginTop: 10 }}>
-        Showing up to 1000.
-      </p>
+      <div
+        style={{
+          display: "flex",
+          gap: 12,
+          alignItems: "center",
+          marginTop: 10,
+          fontSize: 12,
+        }}
+      >
+        <span className="faint">
+          {totalCount.toLocaleString("en-IN")} members · page {page} of {pages}
+        </span>
+        {page > 1 && (
+          <Link className="btn secondary" href={qs(page - 1)}>
+            ← Prev
+          </Link>
+        )}
+        {page < pages && (
+          <Link className="btn secondary" href={qs(page + 1)}>
+            Next →
+          </Link>
+        )}
+      </div>
     </div>
   );
 }

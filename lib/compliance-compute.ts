@@ -53,51 +53,56 @@ export async function computeAllObligations(
     (positions ?? []).map((p) => [p.member_id, p.position]),
   );
 
-  // ---- trips coordinated (walk_coordinators, walk.date in year) ----
-  const { data: coords } = await db
-    .from("walk_coordinators")
-    .select("member_id, walks!inner(date)")
-    .gte("walks.date", year.start)
-    .lte("walks.date", year.end);
-  const trips = tally((coords ?? []).map((c) => c.member_id));
-
-  // ---- meetings attended (present, + apology if configured) ----
   const attStatuses: ("present" | "apology")[] = config.apology_counts_as_attended
     ? ["present", "apology"]
     : ["present"];
-  const { data: att } = await db
-    .from("meeting_attendance")
-    .select("member_id, status, meetings!inner(date)")
-    .in("status", attStatuses)
-    .gte("meetings.date", year.start)
-    .lte("meetings.date", year.end);
-  const meetings = tally((att ?? []).map((a) => a.member_id));
 
-  // ---- events assisted (confirmed helpers + leads, event.date in year) ----
-  const { data: helpers } = await db
-    .from("event_helpers")
-    .select("member_id, confirmed_by_lead, events!inner(date, type)")
-    .eq("confirmed_by_lead", true)
-    .not("events.date", "is", null)
-    .gte("events.date", year.start)
-    .lte("events.date", year.end);
-  const { data: leads } = await db
-    .from("events")
-    .select("lead_id, date")
-    .not("lead_id", "is", null)
-    .not("date", "is", null)
-    .gte("date", year.start)
-    .lte("date", year.end);
+  // All five tally sources run in parallel — one round-trip's worth of latency
+  // instead of five sequential ones.
+  const [
+    { data: coords },
+    { data: att },
+    { data: helpers },
+    { data: leads },
+    { data: pitta },
+  ] = await Promise.all([
+    db
+      .from("walk_coordinators")
+      .select("member_id, walks!inner(date)")
+      .gte("walks.date", year.start)
+      .lte("walks.date", year.end),
+    db
+      .from("meeting_attendance")
+      .select("member_id, status, meetings!inner(date)")
+      .in("status", attStatuses)
+      .gte("meetings.date", year.start)
+      .lte("meetings.date", year.end),
+    db
+      .from("event_helpers")
+      .select("member_id, confirmed_by_lead, events!inner(date, type)")
+      .eq("confirmed_by_lead", true)
+      .not("events.date", "is", null)
+      .gte("events.date", year.start)
+      .lte("events.date", year.end),
+    db
+      .from("events")
+      .select("lead_id, date")
+      .not("lead_id", "is", null)
+      .not("date", "is", null)
+      .gte("date", year.start)
+      .lte("date", year.end),
+    db
+      .from("pitta_contributions")
+      .select("member_id, submitted_at")
+      .gte("submitted_at", pittaStart),
+  ]);
+
+  const trips = tally((coords ?? []).map((c) => c.member_id));
+  const meetings = tally((att ?? []).map((a) => a.member_id));
   const events = tally([
     ...(helpers ?? []).map((h) => h.member_id),
     ...(leads ?? []).map((l) => l.lead_id as string),
   ]);
-
-  // ---- pitta contributions in the rolling window ----
-  const { data: pitta } = await db
-    .from("pitta_contributions")
-    .select("member_id, submitted_at")
-    .gte("submitted_at", pittaStart);
   const pittaCounts = tally((pitta ?? []).map((p) => p.member_id));
   const lastPitta = new Map<string, string>();
   for (const p of pitta ?? []) {
