@@ -82,12 +82,16 @@ async function apply() {
   }));
   for (let i = 0; i < walks.length; i += 200) await ins("walks", walks.slice(i, i + 200));
 
-  const society = Array.from({ length: 570 }, (_, i) => ({
+  const SOCIETY_N = Number(process.env.SOCIETY_N || 3000);
+  const society = Array.from({ length: SOCIETY_N }, (_, i) => ({
     name: `${TAG} Member ${i + 1}`,
     email: `load${i}@example.com`,
+    phone: `90000${String(i).padStart(5, "0")}`,
+    city: ["Hyderabad", "Secunderabad", "Warangal"][i % 3],
+    membership_type: ["Annual", "Life", "Student"][i % 3],
     status: ["Active", "Due", "Lapsed", "Life"][i % 4],
   }));
-  for (let i = 0; i < society.length; i += 200) await ins("society_members", society.slice(i, i + 200));
+  for (let i = 0; i < society.length; i += 500) await ins("society_members", society.slice(i, i + 500));
 
   const notifs = Array.from({ length: 2000 }, (_, i) => ({
     member_id: pick(),
