@@ -21,6 +21,7 @@ export function MomEditor({
     initial.announcements.join("\n"),
   );
   const [nextSteps, setNextSteps] = useState(initial.nextSteps.join("\n"));
+  const [notes, setNotes] = useState(initial.notes ?? "");
   const [items, setItems] = useState(
     initial.actionItems.length
       ? initial.actionItems
@@ -43,6 +44,7 @@ export function MomEditor({
         decisions: lines(decisions),
         announcements: lines(announcements),
         nextSteps: lines(nextSteps),
+        notes: notes.trim(),
         actionItems: items.filter((i) => i.title.trim()),
       });
       setMsg(res.error ?? "Minutes saved as draft.");
@@ -149,6 +151,14 @@ export function MomEditor({
           value={nextSteps}
           disabled={readOnly}
           onChange={(e) => setNextSteps(e.target.value)}
+        />
+      </Section>
+      <Section label="Additional notes (free text — included in the published minutes email)">
+        <textarea
+          rows={3}
+          value={notes}
+          disabled={readOnly}
+          onChange={(e) => setNotes(e.target.value)}
         />
       </Section>
 

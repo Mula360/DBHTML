@@ -30,6 +30,13 @@ export const env = {
   resendKey: () => first("RESEND_API_KEY"),
   resendFrom: () => process.env.RESEND_FROM_EMAIL || "ec@example.com",
   anthropicKey: () => first("ANTHROPIC_API_KEY"),
-  recallKey: () => first("RECALL_API_KEY"),
-  recallWebhookSecret: () => first("RECALL_WEBHOOK_SECRET"),
+  // Google Workspace (Meet / Drive / Docs) — all optional. When the service
+  // account key is absent the app stays in manual-notes-import mode.
+  googleSaKeyJson: () => first("GOOGLE_SA_KEY_JSON"),
+  googleImpersonateSubject: () => first("GOOGLE_IMPERSONATE_SUBJECT"),
+  googleMeetSpaceCode: () => first("GOOGLE_MEET_SPACE_CODE"),
+  googleNotesFolderId: () => first("GOOGLE_NOTES_FOLDER_ID"),
+  // Password sign-in is for test accounts only; off unless explicitly enabled.
+  allowPasswordLogin: () =>
+    (process.env.ALLOW_PASSWORD_LOGIN || "").toLowerCase() === "true",
 };

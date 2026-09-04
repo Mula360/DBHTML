@@ -12,6 +12,7 @@ import {
   runYearendReport,
 } from "./tasks/compliance";
 import { runEventReminders, runRecurringStatutory } from "./tasks/events";
+import { runGoogleMeetIngest } from "./tasks/googleMeet";
 import type { ComplianceConfigRow } from "@/lib/database.types";
 
 type DB = SupabaseClient<Database>;
@@ -32,6 +33,7 @@ export async function runDailyDispatcher(
   db: DB,
   parts: IstParts,
 ): Promise<DispatcherSummary> {
+  const startedAt = Date.now();
   const ran: string[] = [];
   const counts: Record<string, number> = {};
   const errors: Record<string, string> = {};
@@ -71,6 +73,7 @@ export async function runDailyDispatcher(
   await step("statutory_reminders", () => runStatutoryReminders(db, today));
   await step("event_reminders", () => runEventReminders(db, today));
   await step("recurring_statutory", () => runRecurringStatutory(db, today));
+  await step("google_meet_ingest", () => runGoogleMeetIngest(db, today));
 
   // ---- MONDAY -----------------------------------------------------------
   if (parts.weekday === 1) {
@@ -105,5 +108,17 @@ export async function runDailyDispatcher(
     await step("yearend_report", () => runYearendReport(db, config, today));
   }
 
-  return { ran, counts, errors };
+  const summary = { ran, counts, errors };
+  try {
+    await db.from("cron_runs").insert({
+      ist_date: today,
+      tasks_ran: ran,
+      counts,
+      errors,
+      duration_ms: Date.now() - startedAt,
+    });
+  } catch (err) {
+    console.error("[cron] failed to persist cron_runs row:", err);
+  }
+  return summary;
 }

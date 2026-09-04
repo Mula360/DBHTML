@@ -27,6 +27,7 @@ export const EMPTY_MOM: MomContent = {
   actionItems: [],
   announcements: [],
   nextSteps: [],
+  notes: "",
 };
 
 export function normaliseMom(content: MomContent | null): MomContent {

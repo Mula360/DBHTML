@@ -14,7 +14,12 @@ export const maxDuration = 60;
  */
 export async function GET(request: Request) {
   const auth = request.headers.get("authorization");
-  if (auth !== `Bearer ${env.cronSecret()}`) {
+  const fromVercelCron = request.headers.get("x-vercel-cron") !== null;
+  // Vercel Cron sends the header AND (when configured) the Bearer secret. An
+  // external scheduler must present the Bearer secret. A caller with neither
+  // is rejected.
+  const bearerOk = auth === `Bearer ${env.cronSecret()}`;
+  if (!bearerOk && !fromVercelCron) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

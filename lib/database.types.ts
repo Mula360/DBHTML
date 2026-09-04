@@ -18,6 +18,7 @@ export type MemberRow = {
   ebird_username: string | null;
   joined_at: DateStr | null;
   is_active: boolean;
+  google_email: string | null;
 }
 
 export type TermRow = {
@@ -108,8 +109,12 @@ export type MeetingRow = {
     | "Approved"
     | "Published";
   quorum_met: boolean | null;
-  recall_bot_id: string | null;
-  transcript_text: string | null;
+  notes_doc_url: string | null;
+  notes_text: string | null;
+  conference_record_id: string | null;
+  meet_duration_minutes: number | null;
+  notes_ingested_at: Timestamptz | null;
+  meet_synced_at: Timestamptz | null;
   created_by: Uuid | null;
   created_at: Timestamptz;
 }
@@ -135,6 +140,9 @@ export type MeetingAttendanceRow = {
   status: "present" | "absent" | "apology";
   attendance_mode: "in_person" | "virtual";
   marked_at: Timestamptz;
+  minutes_present: number | null;
+  source: "manual" | "meet_api" | "notes";
+  auto_marked: boolean;
 }
 
 export type MomContent = {
@@ -142,6 +150,7 @@ export type MomContent = {
   actionItems: { title: string; assignee: string | null; due: string | null }[];
   announcements: string[];
   nextSteps: string[];
+  notes?: string;
   actionItemsCreated?: boolean;
   noQuorumNotice?: boolean;
 };
@@ -328,6 +337,53 @@ export type ExpenseClaimRow = {
   created_at: Timestamptz;
 }
 
+export type AppConfigRow = {
+  key: string;
+  value: unknown;
+  updated_by: Uuid | null;
+  updated_at: Timestamptz;
+}
+
+export type ContentEntryRow = {
+  id: Uuid;
+  category: "field_note" | "from_the_hide" | "on_birding";
+  body: string;
+  attribution: string | null;
+  sort_order: number;
+  is_active: boolean;
+  created_by: Uuid | null;
+  created_at: Timestamptz;
+  updated_at: Timestamptz;
+}
+
+export type CollageImageRow = {
+  id: Uuid;
+  storage_path: string;
+  alt: string | null;
+  sort_order: number;
+  is_active: boolean;
+  created_by: Uuid | null;
+  created_at: Timestamptz;
+}
+
+export type CronRunRow = {
+  id: Uuid;
+  ran_at: Timestamptz;
+  ist_date: string | null;
+  tasks_ran: string[];
+  counts: Record<string, number>;
+  errors: Record<string, string>;
+  duration_ms: number | null;
+}
+
+export type AuthAttemptRow = {
+  id: Uuid;
+  identifier: string;
+  kind: "magic_link" | "password";
+  attempted_at: Timestamptz;
+  ok: boolean;
+}
+
 // Generic table shape for tables not yet explicitly modelled.
 type Loose = { id: Uuid; [key: string]: unknown };
 
@@ -369,6 +425,11 @@ export interface Database {
       documents: Table<DocumentRow>;
       notifications: Table<NotificationRow>;
       digest_log: Table<Loose>;
+      app_config: Table<AppConfigRow>;
+      content_entries: Table<ContentEntryRow>;
+      collage_images: Table<CollageImageRow>;
+      cron_runs: Table<CronRunRow>;
+      auth_attempts: Table<AuthAttemptRow>;
     };
     Views: { [_ in never]: never };
     Functions: {

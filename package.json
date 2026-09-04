@@ -16,7 +16,10 @@
     "cron:local": "node scripts/trigger-cron.mjs",
     "verify:db": "node scripts/verify-db.mjs",
     "verify:rls": "node scripts/verify-auth-rls.mjs",
-    "test:e2e": "node scripts/e2e-test.mjs"
+    "test:e2e": "node scripts/e2e-test.mjs",
+    "perf:audit": "node scripts/perf-audit.mjs",
+    "perf:load": "node scripts/load-test.mjs",
+    "google:probe": "node scripts/google-api-probe.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.123.0",

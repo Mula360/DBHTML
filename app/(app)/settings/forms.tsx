@@ -4,6 +4,7 @@ import { useFormState, useFormStatus } from "react-dom";
 import {
   updateComplianceConfig,
   updateMyProfile,
+  updateMeetingsWorkspace,
   type Result,
 } from "./actions";
 import type { ComplianceConfigRow } from "@/lib/database.types";
@@ -39,10 +40,12 @@ export function ProfileForm({
   phone,
   ebird,
   avatar,
+  googleEmail,
 }: {
   phone: string;
   ebird: string;
   avatar: string;
+  googleEmail: string;
 }) {
   const [state, action] = useFormState(updateMyProfile, initial);
   return (
@@ -56,7 +59,63 @@ export function ProfileForm({
       <L label="Avatar URL">
         <input name="avatar_url" defaultValue={avatar} />
       </L>
+      <L label="Google Workspace email (only if different from your login email — used to match you in Google Meet attendance)">
+        <input name="google_email" type="email" defaultValue={googleEmail} />
+      </L>
       <Save label="Update profile" />
+      <Msg state={state} />
+    </form>
+  );
+}
+
+export function MeetingsWorkspaceForm({
+  meetCode,
+  notesFolderId,
+  autoIngest,
+  attendanceFraction,
+  googleReady,
+}: {
+  meetCode: string;
+  notesFolderId: string;
+  autoIngest: boolean;
+  attendanceFraction: number;
+  googleReady: boolean;
+}) {
+  const [state, action] = useFormState(updateMeetingsWorkspace, initial);
+  return (
+    <form action={action} style={{ display: "grid", gap: 10 }}>
+      <p style={{ fontSize: 12, color: "var(--ink-mute)" }}>
+        Google credentials:{" "}
+        <b>{googleReady ? "configured" : "not configured (manual notes only)"}</b>
+      </p>
+      <L label="Standing Meet code (e.g. abc-defg-hij)">
+        <input name="meet_space_code" defaultValue={meetCode} />
+      </L>
+      <L label="Notes Drive folder ID (optional)">
+        <input name="notes_folder_id" defaultValue={notesFolderId} />
+      </L>
+      <L label="Attendance fraction (0–1) — present if on the call this share of its length">
+        <input
+          name="attendance_fraction"
+          type="number"
+          step="0.05"
+          min="0.05"
+          max="1"
+          defaultValue={String(attendanceFraction)}
+        />
+      </L>
+      <label
+        style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 13 }}
+      >
+        <input
+          type="checkbox"
+          name="auto_ingest_enabled"
+          defaultChecked={autoIngest}
+          style={{ width: "auto" }}
+        />
+        Auto-ingest attendance &amp; notes from Google Meet each night
+      </label>
+      <Save label="Save Workspace settings" />
       <Msg state={state} />
     </form>
   );

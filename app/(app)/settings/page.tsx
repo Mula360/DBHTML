@@ -1,9 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { getSessionMember, hasPosition, OFFICERS } from "@/lib/auth";
 import { getCurrentConfig } from "@/lib/compliance-compute";
+import { getWorkspaceConfig } from "@/lib/google/config";
+import { googleConfigured } from "@/lib/google/auth";
 import { PageHead, SectionLabel } from "@/components/ui";
-import { ProfileForm, ComplianceForm } from "./forms";
-import type { MemberRow } from "@/lib/database.types";
+import { ProfileForm, ComplianceForm, MeetingsWorkspaceForm } from "./forms";
+import type { MemberRow, CronRunRow } from "@/lib/database.types";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +29,16 @@ export default async function SettingsPage() {
         .limit(10)
     : { data: null };
 
+  const ws = isOfficer ? await getWorkspaceConfig(db) : null;
+  const { data: runsRaw } = isOfficer
+    ? await db
+        .from("cron_runs")
+        .select("*")
+        .order("ran_at", { ascending: false })
+        .limit(10)
+    : { data: null };
+  const runs = (runsRaw ?? []) as CronRunRow[];
+
   return (
     <div style={{ maxWidth: 720 }}>
       <PageHead title="Settings" sub={`${me.name} · ${me.email} · ${position ?? "no position"}`} />
@@ -37,8 +49,41 @@ export default async function SettingsPage() {
           phone={me.phone ?? ""}
           ebird={me.ebird_username ?? ""}
           avatar={me.avatar_url ?? ""}
+          googleEmail={me.google_email ?? ""}
         />
       </div>
+
+      {isOfficer && ws && (
+        <>
+          <SectionLabel>Meetings &amp; Google Workspace</SectionLabel>
+          <div className="card" style={{ display: "grid", gap: 12 }}>
+            <MeetingsWorkspaceForm
+              meetCode={ws.meet_space_code ?? ""}
+              notesFolderId={ws.notes_folder_id ?? ""}
+              autoIngest={ws.auto_ingest_enabled}
+              attendanceFraction={ws.attendance_fraction}
+              googleReady={googleConfigured()}
+            />
+          </div>
+        </>
+      )}
+
+      {isOfficer && runs.length > 0 && (
+        <>
+          <SectionLabel>Recent scheduled runs</SectionLabel>
+          <div className="card" style={{ fontSize: 12, color: "var(--ink-faint)" }}>
+            {runs.map((r) => (
+              <div key={r.id}>
+                {new Date(r.ran_at).toLocaleString("en-IN")} · {r.tasks_ran.length}{" "}
+                tasks · {r.duration_ms ?? "?"}ms
+                {Object.keys(r.errors ?? {}).length > 0
+                  ? ` · errors: ${Object.keys(r.errors).join(", ")}`
+                  : ""}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
 
       {isOfficer && config && (
         <>

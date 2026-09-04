@@ -61,6 +61,13 @@ export async function GET() {
       anon?.ref === projectRefFromUrl &&
       svc?.ref === projectRefFromUrl,
     membersVisible,
+    google: {
+      serviceAccount: Boolean(process.env.GOOGLE_SA_KEY_JSON),
+      impersonateSubject: Boolean(process.env.GOOGLE_IMPERSONATE_SUBJECT),
+      meetSpaceCode: Boolean(process.env.GOOGLE_MEET_SPACE_CODE),
+    },
+    passwordLoginEnabled:
+      (process.env.ALLOW_PASSWORD_LOGIN || "").toLowerCase() === "true",
     dbError,
     hint:
       dbError !== null

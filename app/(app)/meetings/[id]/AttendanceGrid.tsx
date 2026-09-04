@@ -28,6 +28,18 @@ export function AttendanceGrid({
     return map;
   }, [initial]);
 
+  const meta = useMemo(() => {
+    const map = new Map<
+      string,
+      { source: MeetingAttendanceRow["source"]; minutes: number | null }
+    >();
+    for (const r of initial)
+      map.set(r.member_id, { source: r.source, minutes: r.minutes_present });
+    return map;
+  }, [initial]);
+
+  const autoCount = initial.filter((r) => r.source === "meet_api").length;
+
   const [state, setState] = useState<Map<string, { status: Status; mode: Mode }>>(
     () => {
       const m = new Map(initialMap);
@@ -66,6 +78,13 @@ export function AttendanceGrid({
 
   return (
     <div style={{ display: "grid", gap: 10 }}>
+      {autoCount > 0 && (
+        <p style={{ fontSize: 12, color: "#667" }}>
+          {autoCount} auto-marked from Google Meet — a participant counts as
+          present only if they were on the call for at least half its length.
+          Edit any row to override.
+        </p>
+      )}
       <div style={{ overflowX: "auto" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
           <tbody>
@@ -111,6 +130,17 @@ export function AttendanceGrid({
                         <option value="virtual">Virtual</option>
                       </select>
                     )}
+                  </td>
+                  <td style={{ padding: "8px 6px", fontSize: 12, color: "#889" }}>
+                    {meta.get(mem.id)?.source === "meet_api" && (
+                      <span>
+                        via Meet
+                        {meta.get(mem.id)?.minutes != null
+                          ? ` · ${meta.get(mem.id)!.minutes} min`
+                          : ""}
+                      </span>
+                    )}
+                    {meta.get(mem.id)?.source === "notes" && <span>from notes</span>}
                   </td>
                 </tr>
               );

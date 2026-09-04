@@ -32,6 +32,7 @@ const REGISTER_MANAGERS: PositionName[] = [
   "President",
 ];
 const STATUTORY: PositionName[] = ["Secretary", "President", "Treasurer"];
+const ADMINS: PositionName[] = ["President", "Secretary"];
 
 /** One list, used for both the icon rail and the switcher dropdown. */
 export const NAV: NavItem[] = [
@@ -54,6 +55,7 @@ export const NAV: NavItem[] = [
   },
   { label: "Documents", href: "/documents", icon: "▢" },
   { label: "Reports", href: "/reports", icon: "◧" },
+  { label: "Login & Content", href: "/content", icon: "❐", positions: ADMINS },
   { label: "Settings", href: "/settings", icon: "⚙" },
 ];
 

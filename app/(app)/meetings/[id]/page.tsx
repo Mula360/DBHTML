@@ -11,8 +11,9 @@ import type {
   MomRow,
   MemberRow,
 } from "@/lib/database.types";
+import { googleConfigured } from "@/lib/google/auth";
 import { StatusFlow } from "./StatusFlow";
-import { BotControls } from "./BotControls";
+import { NotesImport } from "./NotesImport";
 import { AttendanceGrid } from "./AttendanceGrid";
 import { MomEditor } from "./MomEditor";
 import { PublishControls } from "./PublishControls";
@@ -130,11 +131,15 @@ export default async function MeetingDetail({
       </div>
 
       <div className="card">
-        <h3 style={{ marginBottom: 8 }}>Meeting bot &amp; AI minutes</h3>
-        <BotControls
+        <h3 style={{ marginBottom: 8 }}>Minutes from Google Meet notes</h3>
+        <NotesImport
           meetingId={m.id}
-          botId={m.recall_bot_id}
-          hasTranscript={Boolean(m.transcript_text)}
+          canManage={canManage}
+          googleReady={googleConfigured()}
+          notesDocUrl={m.notes_doc_url}
+          meetSyncedAt={m.meet_synced_at}
+          meetDurationMinutes={m.meet_duration_minutes}
+          notesIngestedAt={m.notes_ingested_at}
         />
       </div>
 

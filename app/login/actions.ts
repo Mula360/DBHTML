@@ -4,6 +4,8 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { env } from "@/lib/env";
+import { checkAuthRate, recordAuthAttempt } from "@/lib/rate-limit";
 
 export interface LoginState {
   ok: boolean;
@@ -25,6 +27,14 @@ export async function requestMagicLink(
     return { ok: false, message: "Enter a valid email address." };
   }
 
+  const rate = await checkAuthRate(email, "magic_link");
+  if (rate.blocked) {
+    return {
+      ok: false,
+      message: `Too many attempts. Try again in about ${rate.retryInMinutes} minutes.`,
+    };
+  }
+
   // Pre-check against the members table with the service role so unknown
   // emails never receive a link (and never get a session on callback).
   const admin = createAdminClient();
@@ -36,6 +46,7 @@ export async function requestMagicLink(
     .maybeSingle();
 
   if (!member) {
+    await recordAuthAttempt(email, "magic_link", false);
     // Deliberately the same wording as the callback rejection.
     return { ok: false, message: NOT_MEMBER_MSG };
   }
@@ -51,6 +62,7 @@ export async function requestMagicLink(
   });
 
   if (error) return { ok: false, message: error.message };
+  await recordAuthAttempt(email, "magic_link", true);
   return {
     ok: true,
     message: `Check ${email} for a sign-in link. It expires in 1 hour.`,
@@ -70,8 +82,19 @@ export async function passwordSignIn(
     .trim()
     .toLowerCase();
   const password = String(formData.get("password") || "");
+  if (!env.allowPasswordLogin()) {
+    return { ok: false, message: "Password sign-in is disabled." };
+  }
   if (!email || !password) {
     return { ok: false, message: "Enter your email and password." };
+  }
+
+  const rate = await checkAuthRate(email, "password");
+  if (rate.blocked) {
+    return {
+      ok: false,
+      message: `Too many attempts. Try again in about ${rate.retryInMinutes} minutes.`,
+    };
   }
 
   const admin = createAdminClient();
@@ -81,7 +104,10 @@ export async function passwordSignIn(
     .eq("email", email)
     .eq("is_active", true)
     .maybeSingle();
-  if (!member) return { ok: false, message: NOT_MEMBER_MSG };
+  if (!member) {
+    await recordAuthAttempt(email, "password", false);
+    return { ok: false, message: NOT_MEMBER_MSG };
+  }
 
   const supabase = createClient();
   const { data, error } = await supabase.auth.signInWithPassword({
@@ -89,8 +115,10 @@ export async function passwordSignIn(
     password,
   });
   if (error || !data.user) {
+    await recordAuthAttempt(email, "password", false);
     return { ok: false, message: "Wrong email or password." };
   }
+  await recordAuthAttempt(email, "password", true);
 
   if (member.auth_id !== data.user.id) {
     await admin

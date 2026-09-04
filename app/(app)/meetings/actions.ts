@@ -8,7 +8,10 @@ import { computeQuorum } from "@/lib/quorum";
 import { MEETING_STATUS_NEXT, normaliseMom } from "@/lib/meetings";
 import { notifyMember } from "@/lib/mailer";
 import { getCurrentTerm } from "@/lib/portfolios";
-import { scheduleBot } from "@/lib/recall";
+import { hasPosition, OFFICERS } from "@/lib/auth";
+import { ingestNotes } from "@/lib/meetings/ingestNotes";
+import { getDocTextFromUrl, docIdFromUrl } from "@/lib/google/docs";
+import { syncOneMeeting } from "@/lib/cron/tasks/googleMeet";
 import type {
   MeetingRow,
   MomContent,
@@ -19,6 +22,14 @@ import type {
 export interface Result {
   error?: string;
   ok?: boolean;
+  summary?: string;
+}
+
+async function requireOfficer(): Promise<{ memberId: string } | { error: string }> {
+  const { member, position } = await getSessionMember();
+  if (!hasPosition(position, OFFICERS))
+    return { error: "Only the President or Secretary can do this." };
+  return { memberId: member.id };
 }
 
 const s = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim();
@@ -64,30 +75,58 @@ export async function createMeeting(_p: Result, fd: FormData): Promise<Result> {
   redirect(`/meetings/${data.id}`);
 }
 
-/** Phase 2 — activate the Recall.ai meeting bot for this meeting. */
-export async function activateBot(meetingId: string): Promise<Result> {
-  await getSessionMember();
+/** Extract Draft minutes + virtual attendance from pasted Gemini notes text. */
+export async function importNotesFromText(
+  meetingId: string,
+  text: string,
+): Promise<Result> {
+  const gate = await requireOfficer();
+  if ("error" in gate) return gate;
+  if (!text.trim()) return { error: "Paste the notes text first." };
   const db = createClient();
-  const { data: meeting } = await db
-    .from("meetings")
-    .select("meet_link, recall_bot_id")
-    .eq("id", meetingId)
-    .maybeSingle();
-  if (!meeting?.meet_link)
-    return { error: "Add a Google Meet link to the meeting first." };
-  if (meeting.recall_bot_id) return { error: "A bot is already scheduled." };
-
-  const res = await scheduleBot(meeting.meet_link);
-  if (res.skipped)
-    return { error: "Meeting bot is not configured (RECALL_API_KEY unset)." };
-  if (res.error) return { error: res.error };
-
-  await db
-    .from("meetings")
-    .update({ recall_bot_id: res.botId })
-    .eq("id", meetingId);
+  const res = await ingestNotes(db, meetingId, text, { source: "notes" });
   revalidatePath(`/meetings/${meetingId}`);
-  return { ok: true };
+  if (!res.ok) return { error: res.note ?? "Nothing could be extracted." };
+  return {
+    ok: true,
+    summary: `${res.decisions} decisions, ${res.actionItems} action items, ${res.attendanceMarked} marked present.`,
+  };
+}
+
+/** Fetch a Google Doc (Gemini notes) by link and extract Draft minutes. */
+export async function importNotesFromLink(
+  meetingId: string,
+  url: string,
+): Promise<Result> {
+  const gate = await requireOfficer();
+  if ("error" in gate) return gate;
+  if (!docIdFromUrl(url))
+    return { error: "That is not a Google Docs / Drive link." };
+  const text = await getDocTextFromUrl(url);
+  if (!text)
+    return {
+      error:
+        "Could not read that Doc. Check Google is configured in Settings and the organiser can open it.",
+    };
+  const db = createClient();
+  const res = await ingestNotes(db, meetingId, text, { source: "notes" });
+  await db.from("meetings").update({ notes_doc_url: url }).eq("id", meetingId);
+  revalidatePath(`/meetings/${meetingId}`);
+  if (!res.ok) return { error: res.note ?? "Nothing could be extracted." };
+  return {
+    ok: true,
+    summary: `${res.decisions} decisions, ${res.actionItems} action items, ${res.attendanceMarked} marked present.`,
+  };
+}
+
+/** Officer "Re-sync from Google Meet now" for a single meeting. */
+export async function resyncMeeting(meetingId: string): Promise<Result> {
+  const gate = await requireOfficer();
+  if ("error" in gate) return gate;
+  const db = createClient();
+  const res = await syncOneMeeting(db, meetingId);
+  revalidatePath(`/meetings/${meetingId}`);
+  return res.ok ? { ok: true } : { error: res.note ?? "Sync failed." };
 }
 
 export async function advanceStatus(
@@ -153,6 +192,10 @@ export async function saveAttendance(
       status: e.status,
       attendance_mode:
         e.status === "present" ? e.attendance_mode : "in_person",
+      // A hand-edit takes ownership of the row so the daily Meet sync leaves
+      // it alone from here on.
+      source: "manual" as const,
+      auto_marked: false,
     })),
     { onConflict: "meeting_id,member_id" },
   );
@@ -298,6 +341,7 @@ export async function publishMom(
           : "",
         `Decisions: ${content.decisions.join("; ") || "none recorded"}`,
         `Announcements: ${content.announcements.join("; ") || "none"}`,
+        content.notes?.trim() ? `Notes: ${content.notes.trim()}` : "",
       ].filter(Boolean),
       link: `/meetings/${meetingId}`,
     });

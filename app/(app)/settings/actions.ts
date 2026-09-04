@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionMember, hasPosition, OFFICERS } from "@/lib/auth";
 import { getCurrentConfig } from "@/lib/compliance-compute";
+import { setWorkspaceConfig } from "@/lib/google/config";
 import type { ComplianceConfigRow } from "@/lib/database.types";
 
 export interface Result {
@@ -103,15 +104,47 @@ export async function updateMyProfile(
 ): Promise<Result> {
   const { member } = await getSessionMember();
   const db = createClient();
+  const gmail = String(fd.get("google_email") ?? "").trim().toLowerCase();
+  if (gmail && !gmail.includes("@"))
+    return { error: "Google email must be a valid address." };
   const { error } = await db
     .from("members")
     .update({
       phone: String(fd.get("phone") ?? "").trim() || null,
       ebird_username: String(fd.get("ebird_username") ?? "").trim() || null,
       avatar_url: String(fd.get("avatar_url") ?? "").trim() || null,
+      google_email: gmail || null,
     })
     .eq("id", member.id);
   if (error) return { error: error.message };
   revalidatePath("/settings");
   return { ok: true, message: "Profile updated." };
+}
+
+export async function updateMeetingsWorkspace(
+  _prev: Result,
+  fd: FormData,
+): Promise<Result> {
+  const { member, position } = await getSessionMember();
+  if (!hasPosition(position, OFFICERS))
+    return { error: "Only the President or Secretary can change these." };
+  const db = createClient();
+  const fraction = Number(fd.get("attendance_fraction"));
+  if (Number.isNaN(fraction) || fraction <= 0 || fraction > 1)
+    return { error: "Attendance fraction must be between 0 and 1." };
+  await setWorkspaceConfig(
+    db,
+    {
+      meet_space_code:
+        String(fd.get("meet_space_code") ?? "").trim() || null,
+      notes_folder_id:
+        String(fd.get("notes_folder_id") ?? "").trim() || null,
+      auto_ingest_enabled: fd.get("auto_ingest_enabled") === "on",
+      attendance_fraction: fraction,
+    },
+    member.id,
+  );
+  revalidatePath("/settings");
+  revalidatePath("/meetings");
+  return { ok: true, message: "Google Workspace settings saved." };
 }
