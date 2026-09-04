@@ -440,6 +440,10 @@ export interface Database {
       can_manage_register: { Args: Record<PropertyKey, never>; Returns: boolean };
       app_session: { Args: Record<PropertyKey, never>; Returns: unknown };
       nav_badges: { Args: Record<PropertyKey, never>; Returns: unknown };
+      society_member_summary: {
+        Args: Record<PropertyKey, never>;
+        Returns: unknown;
+      };
     };
     Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };

@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { istToday, addDays } from "@/lib/dates";
 import { PageHead } from "@/components/ui";
 import type { SocietyMemberRow } from "@/lib/database.types";
 import { MemberRowControls } from "./ui";
@@ -17,14 +16,14 @@ export default async function MembershipPage({
   searchParams: { q?: string; status?: string; type?: string; page?: string };
 }) {
   const db = createClient();
-  const today = istToday();
   const page = Math.max(1, Number(searchParams.page) || 1);
   const from = (page - 1) * PAGE_SIZE;
 
-  let query = db
-    .from("society_members")
-    .select("*", { count: "exact" })
-    .eq("is_deleted", false);
+  const filtered = Boolean(
+    searchParams.q || searchParams.status || searchParams.type,
+  );
+
+  let query = db.from("society_members").select("*").eq("is_deleted", false);
   if (searchParams.q)
     query = query.or(
       `name.ilike.%${searchParams.q}%,email.ilike.%${searchParams.q}%,membership_number.ilike.%${searchParams.q}%`,
@@ -36,36 +35,27 @@ export default async function MembershipPage({
     );
   if (searchParams.type) query = query.eq("membership_type", searchParams.type);
 
-  const { data: rows, count: total } = await query
-    .order("name")
-    .range(from, from + PAGE_SIZE - 1);
+  // One RPC for every tile count + the total; a page of rows in parallel.
+  const [{ data: rows }, { data: sum }] = await Promise.all([
+    query.order("name").range(from, from + PAGE_SIZE - 1),
+    db.rpc("society_member_summary"),
+  ]);
   const members = (rows ?? []) as SocietyMemberRow[];
-  const totalCount = total ?? members.length;
+  const s = (sum ?? {}) as Record<string, number>;
+  const counts: Record<string, number> = {
+    Active: s.active ?? 0,
+    Due: s.due ?? 0,
+    Lapsed: s.lapsed ?? 0,
+    Life: s.life ?? 0,
+  };
+  const dueSoon = s.due_soon ?? 0;
+  // When a filter is active we can't cheaply know the filtered total, so paging
+  // just advances while a full page comes back.
+  const totalCount = filtered
+    ? from + members.length + (members.length === PAGE_SIZE ? PAGE_SIZE : 0)
+    : (s.total ?? members.length);
   const pages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
-  // Status tiles + "due soon" — SQL-side counts, never a full-table fetch.
-  const base = () =>
-    db
-      .from("society_members")
-      .select("id", { count: "exact", head: true })
-      .eq("is_deleted", false);
-  const [active, due, lapsed, life, dueSoonRes] = await Promise.all([
-    base().eq("status", "Active"),
-    base().eq("status", "Due"),
-    base().eq("status", "Lapsed"),
-    base().eq("status", "Life"),
-    base()
-      .in("status", ["Due", "Lapsed"])
-      .not("renewal_due_date", "is", null)
-      .lte("renewal_due_date", addDays(today, 30)),
-  ]);
-  const counts: Record<string, number> = {
-    Active: active.count ?? 0,
-    Due: due.count ?? 0,
-    Lapsed: lapsed.count ?? 0,
-    Life: life.count ?? 0,
-  };
-  const dueSoon = dueSoonRes.count ?? 0;
   const qs = (p: number) => {
     const u = new URLSearchParams();
     if (searchParams.q) u.set("q", searchParams.q);
