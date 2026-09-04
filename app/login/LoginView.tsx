@@ -62,7 +62,9 @@ export function LoginView({
 }) {
   const [linkState, linkAction] = useFormState(requestMagicLink, initial);
   const [pwState, pwAction] = useFormState(passwordSignIn, initial);
-  const [mode, setMode] = useState<"link" | "password">("link");
+  const [mode, setMode] = useState<"link" | "password">(
+    passwordEnabled ? "password" : "link",
+  );
   const [i, setI] = useState(0);
   const state = mode === "link" ? linkState : pwState;
 
@@ -100,7 +102,7 @@ export function LoginView({
             <p className="login-sub">
               {mode === "link"
                 ? "Sign in with your committee email. No password — we send a one-time link."
-                : "Sign in with a password (test accounts only)."}
+                : "Sign in with your committee email and password."}
             </p>
 
             {error === "not_member" && (
@@ -175,8 +177,8 @@ export function LoginView({
                   }
                 >
                   {mode === "link"
-                    ? "Have a test password? Sign in with it"
-                    : "Back to email sign-in link"}
+                    ? "Sign in with a password instead"
+                    : "Email me a sign-in link instead"}
                 </button>
               </>
             )}
