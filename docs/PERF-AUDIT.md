@@ -61,13 +61,33 @@ for a one-query route. Real EC users in Hyderabad see a shorter edge hop.
 Zero errors but severe queueing — throughput plateaus at **~3 req/s** regardless
 of endpoint weight. That is the free-tier concurrency gate.
 
-## Fixes applied (this commit)
+## Fixes applied (commits 86fd58a, 57f09ee, 9be3311)
 
-- `vercel.json` regions `bom1` → `hnd1`.
-- `lib/compliance-compute.ts` — the 5 tally queries now run in one `Promise.all`
-  instead of sequentially (≈5× fewer serial round trips on `/compliance`).
-- `app/(app)/membership/page.tsx` — 50 rows/page with prev/next; status tiles +
-  "due soon" use `head:true` SQL counts instead of pulling all 3 040 rows.
+- `vercel.json` regions `bom1` → `hnd1` (functions now co-located with the DB).
+- `lib/compliance-compute.ts` — the 5 tally queries run in one `Promise.all`
+  instead of sequentially.
+- `app/(app)/membership/page.tsx` — 50 rows/page with prev/next; all tile counts
+  + total come from one `society_member_summary()` RPC (migration `0008`)
+  instead of fetching 3 040 rows.
+- `0008` indexes: `society_members(status)`, `(name)`,
+  `meeting_attendance(member_id,status)`, `action_items(assigned_to,status)`,
+  `notifications(member_id) where read_at is null`.
+
+### After — single-request warm p50 / p95 (same load dataset, logged-in browser)
+
+| Route | Before p50 / p95 | After p50 / p95 |
+|---|---|---|
+| `/membership` | 2990 / 3121 | **927 / 1247** |
+| `/membership?page=3` | — | 697 / 868 |
+| `/compliance` | 1411 / 4262 | **787 / 1384** |
+| `/meetings` | 719 / 1053 | 642 / 668 |
+| `/reports/ec` | 1030 / 1151 | 943 / 1131 |
+| `/dashboard` | 812 / 1087 | 925 / 966 |
+| `/action-items` | 1058 / 1076 | 1101 / 1158 (unchanged — still fetches all rows) |
+| `/api/health` | 542 / 616 | 529 / 573 |
+
+Every page is now sub-1.5 s single-request. `/action-items` is the remaining
+code follow-up. **Concurrency is still gated by the free tiers — see below.**
 
 ## Fixes still required — infrastructure (user decision)
 
