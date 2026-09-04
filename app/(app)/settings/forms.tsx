@@ -1,10 +1,16 @@
 "use client";
 
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { useFormState, useFormStatus } from "react-dom";
 import {
   updateComplianceConfig,
   updateMyProfile,
   updateMeetingsWorkspace,
+  changeMyPassword,
+  addTeamMember,
+  resetPasswordToDefault,
+  resetPasswordCustom,
   type Result,
 } from "./actions";
 import type { ComplianceConfigRow } from "@/lib/database.types";
@@ -63,6 +69,22 @@ export function ProfileForm({
         <input name="google_email" type="email" defaultValue={googleEmail} />
       </L>
       <Save label="Update profile" />
+      <Msg state={state} />
+    </form>
+  );
+}
+
+export function ChangePasswordForm() {
+  const [state, action] = useFormState(changeMyPassword, initial);
+  return (
+    <form action={action} style={{ display: "grid", gap: 10 }}>
+      <L label="New password (min 8 characters)">
+        <input name="new_password" type="password" autoComplete="new-password" required minLength={8} />
+      </L>
+      <L label="Confirm new password">
+        <input name="confirm_password" type="password" autoComplete="new-password" required minLength={8} />
+      </L>
+      <Save label="Change password" />
       <Msg state={state} />
     </form>
   );
@@ -185,5 +207,137 @@ function L({ label, children }: { label: string; children: React.ReactNode }) {
       {label}
       {children}
     </label>
+  );
+}
+
+export function TeamMemberForm() {
+  const [state, action] = useFormState(addTeamMember, initial);
+  return (
+    <form action={action} style={{ display: "grid", gap: 10 }}>
+      <p style={{ fontSize: 12, color: "var(--ink-mute)" }}>
+        Default password = last 4 digits of the phone number + last name
+        (e.g. phone …3210, &quot;Anita Rao&quot; → <code>3210Rao</code>). Tell
+        them to change it in Settings → My profile.
+      </p>
+      <L label="Full name (first + last)">
+        <input name="name" required />
+      </L>
+      <L label="Email">
+        <input name="email" type="email" required />
+      </L>
+      <L label="Phone">
+        <input name="phone" required />
+      </L>
+      <Save label="Add member" />
+      <Msg state={state} />
+    </form>
+  );
+}
+
+export interface TeamRow {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  position: string | null;
+}
+
+function TeamPasswordActions({ member }: { member: TeamRow }) {
+  const [custom, setCustom] = useState("");
+  const [showCustom, setShowCustom] = useState(false);
+  const [pending, start] = useTransition();
+  const [msg, setMsg] = useState<string | null>(null);
+  const router = useRouter();
+
+  const runDefault = () =>
+    start(async () => {
+      const res = await resetPasswordToDefault(member.id);
+      setMsg(res.error ?? res.message ?? null);
+      if (!res.error) router.refresh();
+    });
+
+  const runCustom = () =>
+    start(async () => {
+      const fd = new FormData();
+      fd.set("member_id", member.id);
+      fd.set("password", custom);
+      const res = await resetPasswordCustom({}, fd);
+      setMsg(res.error ?? res.message ?? null);
+      if (!res.error) {
+        setShowCustom(false);
+        setCustom("");
+        router.refresh();
+      }
+    });
+
+  return (
+    <div style={{ display: "grid", gap: 6 }}>
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+        <button
+          type="button"
+          className="btn secondary"
+          style={{ padding: "3px 8px", fontSize: 12 }}
+          disabled={pending || !member.phone}
+          title={member.phone ? "" : "No phone on file"}
+          onClick={runDefault}
+        >
+          Reset to default
+        </button>
+        <button
+          type="button"
+          className="btn secondary"
+          style={{ padding: "3px 8px", fontSize: 12 }}
+          disabled={pending}
+          onClick={() => setShowCustom((v) => !v)}
+        >
+          Set password…
+        </button>
+      </div>
+      {showCustom && (
+        <div style={{ display: "flex", gap: 6 }}>
+          <input
+            type="text"
+            placeholder="New password (min 8 chars)"
+            value={custom}
+            onChange={(e) => setCustom(e.target.value)}
+            style={{ fontSize: 12, padding: "4px 8px" }}
+          />
+          <button
+            type="button"
+            className="btn"
+            style={{ padding: "3px 10px", fontSize: 12 }}
+            disabled={pending || custom.length < 8}
+            onClick={runCustom}
+          >
+            Set
+          </button>
+        </div>
+      )}
+      {msg && <div style={{ fontSize: 11.5, color: "#667" }}>{msg}</div>}
+    </div>
+  );
+}
+
+export function TeamList({ members }: { members: TeamRow[] }) {
+  return (
+    <div style={{ display: "grid", gap: 10 }}>
+      {members.map((m) => (
+        <div
+          key={m.id}
+          className="card"
+          style={{ display: "grid", gap: 6, gridTemplateColumns: "1.3fr 1fr auto", alignItems: "start" }}
+        >
+          <div>
+            <div style={{ fontWeight: 600, fontSize: 13 }}>{m.name}</div>
+            <div style={{ fontSize: 11.5, color: "#889" }}>
+              {m.email} · {m.phone || "no phone on file"}
+              {m.position ? ` · ${m.position}` : ""}
+            </div>
+          </div>
+          <div />
+          <TeamPasswordActions member={m} />
+        </div>
+      ))}
+    </div>
   );
 }

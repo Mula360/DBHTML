@@ -5,7 +5,11 @@ import { createClient } from "@/lib/supabase/server";
 import { getSessionMember, hasPosition, OFFICERS } from "@/lib/auth";
 import { getCurrentConfig } from "@/lib/compliance-compute";
 import { setWorkspaceConfig } from "@/lib/google/config";
-import type { ComplianceConfigRow } from "@/lib/database.types";
+import { defaultPassword } from "@/lib/auth/defaultPassword";
+import { setAuthPassword } from "@/lib/auth/adminPassword";
+import type { ComplianceConfigRow, MemberRow } from "@/lib/database.types";
+
+const MIN_PASSWORD_LEN = 8;
 
 export interface Result {
   error?: string;
@@ -119,6 +123,125 @@ export async function updateMyProfile(
   if (error) return { error: error.message };
   revalidatePath("/settings");
   return { ok: true, message: "Profile updated." };
+}
+
+/** Self-service — the signed-in member sets their own password. */
+export async function changeMyPassword(
+  _prev: Result,
+  fd: FormData,
+): Promise<Result> {
+  await getSessionMember();
+  const next = String(fd.get("new_password") ?? "");
+  const confirm = String(fd.get("confirm_password") ?? "");
+  if (next.length < MIN_PASSWORD_LEN)
+    return { error: `Password must be at least ${MIN_PASSWORD_LEN} characters.` };
+  if (next !== confirm) return { error: "Passwords don't match." };
+
+  const db = createClient();
+  const { error } = await db.auth.updateUser({ password: next });
+  if (error) return { error: error.message };
+  return { ok: true, message: "Password changed." };
+}
+
+/**
+ * Add an EC member: name, email, phone. Creates the members row and a Supabase
+ * Auth account with the default password (last 4 digits of the phone number +
+ * last name) so they can sign in immediately. Position/portfolio assignment is
+ * still done separately.
+ */
+export async function addTeamMember(
+  _prev: Result,
+  fd: FormData,
+): Promise<Result> {
+  const { position } = await getSessionMember();
+  if (!hasPosition(position, OFFICERS))
+    return { error: "Only the President or Secretary can add members." };
+
+  const name = String(fd.get("name") ?? "").trim();
+  const email = String(fd.get("email") ?? "").trim().toLowerCase();
+  const phone = String(fd.get("phone") ?? "").trim();
+  if (!name || !email.includes("@") || !phone)
+    return { error: "Name, a valid email and phone are all required." };
+
+  const password = defaultPassword(name, phone);
+  const auth = await setAuthPassword(email, password);
+  if ("error" in auth) return { error: auth.error };
+
+  const db = createClient();
+  const { error } = await db.from("members").upsert(
+    { name, email, phone, auth_id: auth.authId, is_active: true },
+    { onConflict: "email" },
+  );
+  if (error) return { error: error.message };
+
+  revalidatePath("/settings");
+  return {
+    ok: true,
+    message: `${name} added. Default password: ${password} — tell them to change it in Settings.`,
+  };
+}
+
+/** Officer resets a member's password to the last4+lastname default. */
+export async function resetPasswordToDefault(memberId: string): Promise<Result> {
+  const { position } = await getSessionMember();
+  if (!hasPosition(position, OFFICERS))
+    return { error: "Only the President or Secretary can reset passwords." };
+  const db = createClient();
+  const { data: m } = await db
+    .from("members")
+    .select("name, email, phone")
+    .eq("id", memberId)
+    .maybeSingle();
+  const target = m as Pick<MemberRow, "name" | "email" | "phone"> | null;
+  if (!target) return { error: "Member not found." };
+  if (!target.phone)
+    return { error: "This member has no phone number on file." };
+
+  const password = defaultPassword(target.name, target.phone);
+  const auth = await setAuthPassword(target.email, password);
+  if ("error" in auth) return { error: auth.error };
+  await db
+    .from("members")
+    .update({ auth_id: auth.authId })
+    .eq("id", memberId)
+    .is("auth_id", null);
+
+  revalidatePath("/settings");
+  return { ok: true, message: `Reset to default: ${password}` };
+}
+
+/** Officer sets a member's password to a value they type in themselves. */
+export async function resetPasswordCustom(
+  _prev: Result,
+  fd: FormData,
+): Promise<Result> {
+  const { position } = await getSessionMember();
+  if (!hasPosition(position, OFFICERS))
+    return { error: "Only the President or Secretary can reset passwords." };
+
+  const memberId = String(fd.get("member_id") ?? "");
+  const password = String(fd.get("password") ?? "");
+  if (password.length < MIN_PASSWORD_LEN)
+    return { error: `Password must be at least ${MIN_PASSWORD_LEN} characters.` };
+
+  const db = createClient();
+  const { data: m } = await db
+    .from("members")
+    .select("email")
+    .eq("id", memberId)
+    .maybeSingle();
+  if (!m) return { error: "Member not found." };
+
+  const auth = await setAuthPassword(m.email, password);
+  if ("error" in auth) return { error: auth.error };
+  await db
+    .from("members")
+    .update({ auth_id: auth.authId })
+    .eq("id", memberId)
+    .is("auth_id", null);
+
+  revalidatePath("/settings");
+  return { ok: true, message: "Password set." };
 }
 
 export async function updateMeetingsWorkspace(

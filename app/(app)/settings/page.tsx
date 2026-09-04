@@ -4,7 +4,15 @@ import { getCurrentConfig } from "@/lib/compliance-compute";
 import { getWorkspaceConfig } from "@/lib/google/config";
 import { googleConfigured } from "@/lib/google/auth";
 import { PageHead, SectionLabel } from "@/components/ui";
-import { ProfileForm, ComplianceForm, MeetingsWorkspaceForm } from "./forms";
+import {
+  ProfileForm,
+  ComplianceForm,
+  MeetingsWorkspaceForm,
+  ChangePasswordForm,
+  TeamMemberForm,
+  TeamList,
+  type TeamRow,
+} from "./forms";
 import type { MemberRow, CronRunRow } from "@/lib/database.types";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +37,33 @@ export default async function SettingsPage() {
         .limit(10)
     : { data: null };
 
+  const team: TeamRow[] = [];
+  if (isOfficer) {
+    const [{ data: allMembers }, { data: positions }] = await Promise.all([
+      db
+        .from("members")
+        .select("id, name, email, phone")
+        .eq("is_active", true)
+        .order("name"),
+      db
+        .from("member_positions")
+        .select("member_id, position, terms!inner(is_current)")
+        .is("end_date", null)
+        .eq("terms.is_current", true),
+    ]);
+    const posByMember = new Map(
+      (positions ?? []).map((p) => [p.member_id, p.position]),
+    );
+    for (const m of allMembers ?? [])
+      team.push({
+        id: m.id,
+        name: m.name,
+        email: m.email,
+        phone: m.phone,
+        position: posByMember.get(m.id) ?? null,
+      });
+  }
+
   const ws = isOfficer ? await getWorkspaceConfig(db) : null;
   const { data: runsRaw } = isOfficer
     ? await db
@@ -52,6 +87,24 @@ export default async function SettingsPage() {
           googleEmail={me.google_email ?? ""}
         />
       </div>
+
+      <SectionLabel>Password</SectionLabel>
+      <div className="card" style={{ display: "grid", gap: 12 }}>
+        <ChangePasswordForm />
+      </div>
+
+      {isOfficer && (
+        <>
+          <SectionLabel>EC team &amp; passwords</SectionLabel>
+          <div style={{ display: "grid", gap: 12 }}>
+            <TeamList members={team} />
+            <div className="card" style={{ display: "grid", gap: 12 }}>
+              <b style={{ fontSize: 13 }}>Add a member</b>
+              <TeamMemberForm />
+            </div>
+          </div>
+        </>
+      )}
 
       {isOfficer && ws && (
         <>
